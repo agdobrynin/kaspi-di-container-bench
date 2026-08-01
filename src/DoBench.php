@@ -26,8 +26,8 @@ abstract class DoBench
         $milliseconds = \round($executionTime / 1e+6, 4);
 
         $time = $milliseconds > 1000
-            ? \round(($executionTime / 1e+9), 4). ' sec'
-            : $milliseconds. ' µ sec';
+            ? \round(($executionTime / 1e+9), 4). ' s'
+            : $milliseconds. ' ms';
 
         print \ltrim(\sprintf("%s %sTime: %s\e[0m\n", $labelPrefix, $colorTime, $time));
     }
