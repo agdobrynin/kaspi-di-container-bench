@@ -4,33 +4,57 @@ declare(strict_types=1);
 
 namespace App;
 
-abstract class DoBench
+use App\Services\Interfaces\ServiceInterface;
+use function hrtime;
+use function sprintf;
+
+final class DoBench extends DoBenchAbstract
 {
-    protected static function getFunctionMemory(callable $callback): void
+    public function doBenchmarkFindTaggedDefinitions(): void
     {
-        $startMemory = memory_get_usage();
-        $startPeak = memory_get_peak_usage();
+        $container = $this->container;
+        $tag1 = 'tags.name_bar';
 
-        // Execute the target function
-        $callback();
+        self::getFunctionMemory(static function () use ($container, $tag1) {
+            $s = hrtime(true);
+            $taggedAsTag1 = [...$container->findTaggedDefinitions($tag1)];
+            $label = sprintf('First call for tag "%s". Found %d tags.', $tag1, \count($taggedAsTag1));
+            self::executionTime($s, $label);
+        });
+        print "\n";
 
-        $endMemory = memory_get_usage();
-        $endPeak = memory_get_peak_usage();
+        self::getFunctionMemory(static function () use ($container, $tag1) {
+            $s = hrtime(true);
+            $taggedAsTag1 = [...$container->findTaggedDefinitions($tag1)];
+            $label = sprintf('Second call for tag "%s". Found %d tags.', $tag1, \count($taggedAsTag1));
+            self::executionTime($s, $label, "\033[32m");
+        });
+        print "\n";
 
-        \printf("📊 Net retained: %s  bytes\n📊 Peak allocated: %s bytes\n", \number_format($endMemory - $startMemory), \number_format($endPeak - $startPeak));
+        $tag2 = 'tags.name_foo';
+
+        self::getFunctionMemory(static function () use ($container, $tag2) {
+            $s = hrtime(true);
+            $taggedAsTag2 = [...$container->findTaggedDefinitions($tag2)];
+            $label = sprintf('First call for tag "%s". Found %d tags.', $tag2, \count($taggedAsTag2));
+            self::executionTime($s, $label, "\033[33m");
+        });
+        print "\n";
+
+        self::getFunctionMemory(static function () use ($container, $tag2) {
+            $s = hrtime(true);
+            $taggedAsTag2 = [...$container->findTaggedDefinitions($tag2)];
+            $label = sprintf('First call for tag "%s". Found %d tags.', $tag2, \count($taggedAsTag2));
+            self::executionTime($s, $label, "\033[34m");
+        });
+        print "\n";
+
+        self::getFunctionMemory(static function () use ($container) {
+            $s = hrtime(true);
+            $taggedAsTagInterface = [...$container->findTaggedDefinitions(ServiceInterface::class)];
+            $label = sprintf('Find via interface "%s". Found %d tags.', ServiceInterface::class, \count($taggedAsTagInterface));
+            self::executionTime($s, $label, "\033[35m");
+        });
+        print "\n";
     }
-
-    protected static function executionTime(float $hrStart, string $labelPrefix = "", string $colorTime = "\e[31m"): void
-    {
-        $executionTime = (hrtime(true) - $hrStart);
-        $milliseconds = \round($executionTime / 1e+6, 4);
-
-        $time = $milliseconds > 1000
-            ? \round(($executionTime / 1e+9), 4). ' s'
-            : $milliseconds. ' ms';
-
-        print \ltrim(\sprintf("%s %sTime: %s\e[0m\n", $labelPrefix, $colorTime, $time));
-    }
-
-    abstract public static function doBench(string $name, \Kaspi\DiContainer\Interfaces\DiContainerInterface $container): void;
 }

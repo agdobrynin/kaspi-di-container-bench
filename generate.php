@@ -11,8 +11,6 @@ $tagSuffix = [
     'bar',
 ];
 
-$diConfigure = [];
-
 file_put_contents(
     $fixturesDir['interfaces']. '/ServiceInterface.php',
     '<?php
@@ -37,7 +35,6 @@ AUTOWIRE;
     }
 
     $serviceName = 'Service'.$i;
-    $diConfigure[] = 'App\Services\\'.$serviceName;
 
     $template = <<< TMPL
 <?php
@@ -52,19 +49,5 @@ TMPL;
     file_put_contents($fixturesDir['services'].'/'.$serviceName.'.php', $template);
 
 }
-
-shuffle($diConfigure);
-
-$config = '<?php
-use function Kaspi\DiContainer\diAutowire;
-
-return static function (): \Generator {'.PHP_EOL;
-
-foreach ($diConfigure as $class) {
-    $config .= \sprintf('   yield diAutowire(%s::class);'.PHP_EOL, $class);
-}
-$config.='};'.PHP_EOL;
-
-file_put_contents($fixturesDir['services'].'/_di_config.php', $config);
 
 print "\n \033[1;32m📁 The fixtures were successfully generated.\033[0m\n\n";
