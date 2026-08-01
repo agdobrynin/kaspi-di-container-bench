@@ -20,7 +20,7 @@ abstract class DoBench
         \printf("📊 Net retained: %s  bytes\n📊 Peak allocated: %s bytes\n", \number_format($endMemory - $startMemory), \number_format($endPeak - $startPeak));
     }
 
-    protected static function executionTime(float $hrStart, string $labelPrefix, string $colorTime = "\e[31m"): void
+    protected static function executionTime(float $hrStart, string $labelPrefix = "", string $colorTime = "\e[31m"): void
     {
         $executionTime = (hrtime(true) - $hrStart);
         $milliseconds = \round($executionTime / 1e+6, 4);
@@ -29,7 +29,7 @@ abstract class DoBench
             ? \round(($executionTime / 1e+9), 4). ' sec'
             : $milliseconds. ' µ sec';
 
-        printf("%s: %s%s\e[0m\n", $labelPrefix, $colorTime, $time);
+        print \ltrim(\sprintf("%s %sTime: %s\e[0m\n", $labelPrefix, $colorTime, $time));
     }
 
     abstract public static function doBench(string $name, \Kaspi\DiContainer\Interfaces\DiContainerInterface $container): void;
