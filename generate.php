@@ -67,4 +67,4 @@ $config.='};'.PHP_EOL;
 
 file_put_contents($fixturesDir['services'].'/_di_config.php', $config);
 
-print "Fixtures was generated success.\n";
+print "\n \033[1;32m📁 The fixtures were successfully generated.\033[0m\n\n";

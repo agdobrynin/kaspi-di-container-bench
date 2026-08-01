@@ -6,7 +6,7 @@ ENV GID=1000
 
 RUN apk update && \
     apk add --no-cache git g++ autoconf make pcre2-dev && \
-    apk del --no-cache g++ autoconf pcre2-dev && \
+    apk del --no-cache g++ autoconf make pcre2-dev && \
     curl -sLS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer && \
     addgroup -g $GID -S dev &&  \
     adduser -u $UID -S dev --ingroup dev && \

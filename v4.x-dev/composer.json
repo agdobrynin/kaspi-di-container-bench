@@ -1,6 +1,6 @@
 {
     "require": {
-        "kaspi/di-container": "dev-4.x/484-optimize-find-tagged-definitions"
+        "kaspi/di-container": "v4.x-dev"
     },
     "autoload": {
         "psr-4": {
