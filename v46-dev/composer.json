@@ -1,0 +1,11 @@
+{
+    "require": {
+        "kaspi/di-container": "dev-4.x/484-optimize-find-tagged-definitions"
+    },
+    "autoload": {
+        "psr-4": {
+            "ContainerV46Dev\\": "src",
+            "App\\": "../src/"
+        }
+    }
+}
