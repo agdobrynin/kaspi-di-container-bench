@@ -9,7 +9,7 @@ use Kaspi\DiContainer\DiContainerBuilder;
 require_once __DIR__ . '/../vendor/autoload.php';
 
 (new DoBench(
-    'v4.5.0',
+    '[v4.5.0] Load definition via DiContainerBuilder::import().',
     static fn () => (new DiContainerBuilder())
         ->import('App\\', __DIR__ . '/../../src/Services')
         ->build(),
