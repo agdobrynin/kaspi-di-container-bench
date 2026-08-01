@@ -1,5 +1,6 @@
 .idea
 !.git-keep
+!**/.git-keep
 **/vendor
 **/composer.lock
 src/Services
