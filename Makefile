@@ -8,7 +8,7 @@ bench-v4.5.0-cmd := php $(working-dir-v4.5.0)/src/bench.php
 bench-v4.x-dev-cmd := php $(working-dir-v4.x-dev)/src/bench.php
 
 
-all: fixtures composer-prepare bench
+bench-hosted: fixtures composer-prepare run-bench-only
 
 .PHONY: fixtures
 fixtures:
@@ -38,8 +38,8 @@ composer-prepare:
 	$(composer-install-cmd) --working-dir=$(working-dir-v4.5.0)
 	$(composer-install-cmd) --working-dir=$(working-dir-v4.x-dev)
 
-.PHONY: bench
-bench:
+.PHONY: run-bench-only
+run-bench-only:
 	$(bench-v4.5.0-cmd)
 	$(bench-v4.x-dev-cmd)
 
