@@ -14,13 +14,32 @@ all: fixtures composer-prepare bench
 fixtures:
 	$(generate-fixtures)
 
+.PHONY: fixtures-clean
+fixtures-clean-cmd := find src/Services -name "*.php" -exec rm -f {} \;
+
+fixtures-clean:
+	$(fixtures-clean-cmd)
+
+.PHONY: vendor-clean
+vendor-clean-v4.5.0-cmd := rm -rf $(working-dir-v4.5.0)/vendor/ $(working-dir-v4.5.0)/composer.lock
+vendor-clean-v4.x-dev-cmd := rm -rf $(working-dir-v4.x-dev)/vendor/ $(working-dir-v4.x-dev)/composer.lock
+
+vendor-clean:
+	$(vendor-clean-v4.5.0-cmd)
+	$(vendor-clean-v4.x-dev-cmd)
+
+clean-all: fixtures-clean vendor-clean
+
 .PHONY: composer-prepare
+composer-install-cmd := composer i --no-dev
+composer-dump-cmd := composer dump-autoload -o -a
+
 # --working-dir
 composer-prepare:
-	composer i --no-dev --working-dir=$(working-dir-v4.5.0)
-	composer dump-autoload -o -a --working-dir=$(working-dir-v4.5.0)
-	composer i --no-dev --working-dir=$(working-dir-v4.x-dev)
-	composer dump-autoload -o -a --working-dir=$(working-dir-v4.x-dev)
+	$(composer-install-cmd) --working-dir=$(working-dir-v4.5.0)
+	$(composer-dump-cmd) --working-dir=$(working-dir-v4.5.0)
+	$(composer-install-cmd) --working-dir=$(working-dir-v4.x-dev)
+	$(composer-dump-cmd) --working-dir=$(working-dir-v4.x-dev)
 
 .PHONY: bench
 bench:
@@ -30,10 +49,8 @@ bench:
 .PHONY: bench-in-docker
 bench-in-docker:
 	$(docker-run) sh -c "$(generate-fixtures) && \
-	composer i --no-dev --working-dir=$(working-dir-v4.5.0) && \
-	composer dump-autoload -o -a --working-dir=$(working-dir-v4.5.0) && \
-	composer i --no-dev --working-dir=$(working-dir-v4.x-dev) && \
-	composer dump-autoload -o -a --working-dir=$(working-dir-v4.x-dev) && \
+	$(composer-dump-cmd) --working-dir=$(working-dir-v4.5.0) && \
+	$(composer-dump-cmd) --working-dir=$(working-dir-v4.x-dev) && \
 	php -v && \
 	$(bench-v4.5.0-cmd) && \
 	$(bench-v4.x-dev-cmd)"
