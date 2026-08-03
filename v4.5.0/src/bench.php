@@ -8,10 +8,12 @@ use Kaspi\DiContainer\DiContainerBuilder;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+$configFile = dirname(__DIR__, 2) . '/src/Services/_di_config.php';
+
 (new DoBench(
-    '[v4.5.0] Load definition via DiContainerBuilder::import().',
+    '[v4.5.0] Init container.',
     static fn () => (new DiContainerBuilder())
-        ->import('App\\', __DIR__ . '/../../src/Services')
+        ->load($configFile)
         ->build(),
 ))
     ->doBenchmark();

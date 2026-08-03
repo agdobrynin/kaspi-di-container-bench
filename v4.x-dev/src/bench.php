@@ -12,7 +12,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 $configFile = dirname(__DIR__, 2) . '/src/Services/_di_config.php';
 
 (new DoBench(
-    '[v4.x-dev] Load definition from configuration file "'.$configFile.'" via DiContainerBuilder::load().',
+    '[v4.x-dev] Init container.',
     static fn() => (new DiContainerBuilder())
         ->load($configFile)
         ->build()

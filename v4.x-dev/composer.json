@@ -2,6 +2,9 @@
     "require": {
         "kaspi/di-container": "v4.x-dev"
     },
+    "config": {
+        "optimize-autoloader": true
+    },
     "autoload": {
         "psr-4": {
             "ContainerV46Dev\\": "src",

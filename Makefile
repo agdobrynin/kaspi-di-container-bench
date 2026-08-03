@@ -32,14 +32,11 @@ clean-all: fixtures-clean vendor-clean
 
 .PHONY: composer-prepare
 composer-install-cmd := composer i --no-dev
-composer-dump-cmd := composer dump-autoload -o -a
 
 # --working-dir
 composer-prepare:
 	$(composer-install-cmd) --working-dir=$(working-dir-v4.5.0)
-	$(composer-dump-cmd) --working-dir=$(working-dir-v4.5.0)
 	$(composer-install-cmd) --working-dir=$(working-dir-v4.x-dev)
-	$(composer-dump-cmd) --working-dir=$(working-dir-v4.x-dev)
 
 .PHONY: bench
 bench:
@@ -49,8 +46,8 @@ bench:
 .PHONY: bench-in-docker
 bench-in-docker:
 	$(docker-run) sh -c "$(generate-fixtures) && \
-	$(composer-dump-cmd) --working-dir=$(working-dir-v4.5.0) && \
-	$(composer-dump-cmd) --working-dir=$(working-dir-v4.x-dev) && \
+	$(composer-install-cmd) --working-dir=$(working-dir-v4.5.0) && \
+	$(composer-install-cmd) --working-dir=$(working-dir-v4.x-dev) && \
 	php -v && \
 	$(bench-v4.5.0-cmd) && \
 	$(bench-v4.x-dev-cmd)"
