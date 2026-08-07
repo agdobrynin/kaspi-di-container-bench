@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App;
 
-use Closure;
+use Kaspi\DiContainer\Interfaces\DiContainerBuilderInterface;
 use Kaspi\DiContainer\Interfaces\DiContainerInterface;
 use ReflectionClass;
 use ReflectionException;
@@ -30,15 +30,16 @@ abstract class DoBenchAbstract
     protected array $benchmarkMethods = [];
 
     public function __construct(
-        string $name,
-        DiContainerInterface|Closure $containerOrInitializer,
+        protected readonly string                      $name,
+        protected readonly DiContainerBuilderInterface $containerBuilder,
     ) {
-        printf("\n\e[0;31mContainer: %s\033[0m\n%s\n", $name, \str_repeat('-', strlen($name)));
-
         // Cheks available benchmark methods
         $methods = (new ReflectionClass($this))
             ->getMethods(ReflectionMethod::IS_PUBLIC)
         ;
+
+        /** @var array<non-empty-string, ReflectionMethod> $foundBenchmarkMethod */
+        $foundBenchmarkMethod = [];
 
         foreach ($methods as $method) {
             if (!$method->isStatic()
@@ -48,22 +49,13 @@ abstract class DoBenchAbstract
                 $description = null !== $attribute
                     ? $attribute->newInstance()->description
                     : self::methodToHuman($method->getName());
-                $this->benchmarkMethods[$description] = $method;
+                $foundBenchmarkMethod[$description] = $method;
             }
         }
-
-        if ($containerOrInitializer instanceof \Closure) {
-            $timeMemory = self::getFunctionMemory(function () use ($containerOrInitializer) {
-                $this->container = ($containerOrInitializer)();
-            });
-            print "Memory usage: Net: " . $timeMemory->formatMemoryNet() . " bytes, Peak : " . $timeMemory->formatMemoryPeak() . " bytes \n";
-            print  "Time execution: " . $timeMemory->formatTimeExecute() . "\n";
-        } else {
-            $this->container = $containerOrInitializer;
-        }
+        $this->benchmarkMethods = ['Build container' => new ReflectionMethod($this, 'buildContainer')] + $foundBenchmarkMethod;
     }
 
-    protected static function getFunctionMemory(callable $callback): TimeExecuteMemoryUse
+    final protected static function getFunctionMemory(callable $callback): TimeExecuteMemoryUse
     {
         $startMemory = memory_get_usage();
         $startPeak = memory_get_peak_usage();
@@ -82,7 +74,7 @@ abstract class DoBenchAbstract
         );
     }
 
-    protected static function methodToHuman(string $methodName): string
+    final protected static function methodToHuman(string $methodName): string
     {
         $step1 = str_replace(['_', '-'], ' ', $methodName);
         $step2 = preg_replace('/(?<! )[A-Z]/', ' $0', $step1);
@@ -93,8 +85,10 @@ abstract class DoBenchAbstract
     /**
      * @throws ReflectionException
      */
-    public function doBenchmark(): void
+    final public function doBenchmark(): void
     {
+        printf("\n\033[1;31m%s\033[0m\n", $this->name);
+
         print <<< TABLEHEAD
 
 +-----+---------------------------------------------------+-----------------------+----------------+
@@ -124,5 +118,12 @@ ROW;
 
             ++$n;
         }
+
+        print "\n";
+    }
+
+    final protected function buildContainer(): void
+    {
+        $this->container = $this->containerBuilder->build();
     }
 }
