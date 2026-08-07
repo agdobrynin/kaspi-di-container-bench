@@ -13,32 +13,44 @@ final class DoBench extends DoBenchAbstract
 
     private string $interfaceName = ServiceInterface::class;
 
-    #[BenchmarkDescription('First call for tag "tags.name_bar"')]
-    public function doBenchmarkFirstCallFindTagName1(): void
+    #[Benchmark(
+        'First call for tag "tags.name_bar"',
+        priority: 101,
+    )]
+    public function firstCallFindTagName1(): void
     {
         [...$this->container->findTaggedDefinitions($this->tag1)];
     }
 
-    #[BenchmarkDescription('Second call for tag "tags.name_bar"')]
-    public function doBenchmarkSecondCallFindTagName1(): void
+    #[Benchmark(
+        'Second call for tag "tags.name_bar"',
+        priority: 100,
+    )]
+    public function secondCallFindTagName1(): void
     {
         [...$this->container->findTaggedDefinitions($this->tag1)];
     }
 
-    #[BenchmarkDescription('Second call for tag "tags.name_foo"')]
-    public function doBenchmarkFirstCallFindTagName2(): void
+    #[Benchmark(
+        'Second call for tag "tags.name_foo"',
+        priority: 51,
+    )]
+    public function firstCallFindTagName2(): void
     {
         [...$this->container->findTaggedDefinitions($this->tag2)];
     }
 
-    #[BenchmarkDescription('Second call for tag "tags.name_foo"')]
-    public function doBenchmarkSecondCallFindTagName2(): void
+    #[Benchmark(
+        'Second call for tag "tags.name_foo"',
+        priority: 50,
+    )]
+    public function secondCallFindTagName2(): void
     {
         [...$this->container->findTaggedDefinitions($this->tag2)];
     }
 
-    #[BenchmarkDescription('Find via interface name "' . ServiceInterface::class . '"')]
-    public function doBenchmarkFirstCallFindTagAsInterfaceName(): void
+    #[Benchmark('Find via interface name "' . ServiceInterface::class . '"')]
+    public function firstCallFindTagAsInterfaceName(): void
     {
         [...$this->container->findTaggedDefinitions($this->interfaceName)];
     }

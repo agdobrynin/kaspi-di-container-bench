@@ -9,23 +9,22 @@ use Kaspi\DiContainer\Interfaces\DiContainerInterface;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
+use function array_unshift;
 use function hrtime;
 use function memory_get_peak_usage;
 use function memory_get_usage;
 use function printf;
 use function str_pad;
-use function str_starts_with;
 use function substr;
+use function usort;
 use const STR_PAD_BOTH;
 
 abstract class DoBenchAbstract
 {
-    private const PREFIX_BENCH_METHOD_NAME = 'doBenchmark';
-
     protected DiContainerInterface $container;
 
     /**
-     * @var array<string, ReflectionMethod>
+     * @var BenchMethod[]
      */
     protected array $benchmarkMethods = [];
 
@@ -38,21 +37,36 @@ abstract class DoBenchAbstract
             ->getMethods(ReflectionMethod::IS_PUBLIC)
         ;
 
-        /** @var array<non-empty-string, ReflectionMethod> $foundBenchmarkMethod */
-        $foundBenchmarkMethod = [];
-
         foreach ($methods as $method) {
-            if (!$method->isStatic()
-                && 'doBenchmark' !== $method->getName()
-                && str_starts_with($method->getName(), self::PREFIX_BENCH_METHOD_NAME)) {
-                $attribute = $method->getAttributes(BenchmarkDescription::class)[0] ?? null;
-                $description = null !== $attribute
-                    ? $attribute->newInstance()->description
+            if (!$method->isStatic()) {
+                $attribute = $method->getAttributes(Benchmark::class)[0] ?? null;
+
+                if (null === $attribute) {
+                    continue;
+                }
+
+                /** @var Benchmark $attributeBenchmark */
+                $attributeBenchmark = $attribute->newInstance();
+
+                $description = '' !== $attributeBenchmark->description
+                    ? $attributeBenchmark->description
                     : self::methodToHuman($method->getName());
-                $foundBenchmarkMethod[$description] = $method;
+
+                $this->benchmarkMethods[] = new BenchMethod($description, $method, $attributeBenchmark->priority);
             }
         }
-        $this->benchmarkMethods = ['Build container' => new ReflectionMethod($this, 'buildContainer')] + $foundBenchmarkMethod;
+
+        usort($this->benchmarkMethods, static function (BenchMethod $a, BenchMethod $b) {
+            return $b->priority <=> $a->priority;
+        });
+
+        array_unshift(
+            $this->benchmarkMethods,
+            new BenchMethod(
+                'Build container',
+                new ReflectionMethod($this, 'buildContainer'),
+            )
+        );
     }
 
     final protected static function getFunctionMemory(callable $callback): TimeExecuteMemoryUse
@@ -99,16 +113,16 @@ abstract class DoBenchAbstract
 
 TABLEHEAD;
         $n = 1;
-        foreach ($this->benchmarkMethods as $description => $method) {
-            $timeMemory = self::getFunctionMemory(fn() => $method->invoke($this));
+        foreach ($this->benchmarkMethods as $benchmarkMethod) {
+            $timeMemory = self::getFunctionMemory(fn() => $benchmarkMethod->method->invoke($this));
 
             $no = str_pad($n . '', 5, ' ', STR_PAD_BOTH);
             $net = str_pad($timeMemory->formatMemoryNet(4), 11, ' ', STR_PAD_BOTH);
             $peak = str_pad($timeMemory->formatMemoryPeak(4), 11, ' ', STR_PAD_BOTH);
             $time = str_pad($timeMemory->formatTimeExecute(), 16, ' ', STR_PAD_BOTH);
-            $description_cut = \strlen($description) > 50 ?
-                substr($description, 0, 47) . '...'
-                : $description;
+            $description_cut = \strlen($benchmarkMethod->description) > 50 ?
+                substr($benchmarkMethod->description, 0, 47) . '...'
+                : $benchmarkMethod->description;
             $prepare_description = ' ' . str_pad($description_cut, 50);
             print <<< ROW
 |$no|$prepare_description|$net|$peak|$time|
