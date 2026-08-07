@@ -13,9 +13,10 @@ use function hrtime;
 use function memory_get_peak_usage;
 use function memory_get_usage;
 use function printf;
-use function round;
-use function sprintf;
+use function str_pad;
 use function str_starts_with;
+use function substr;
+use const STR_PAD_BOTH;
 
 abstract class DoBenchAbstract
 {
@@ -52,41 +53,33 @@ abstract class DoBenchAbstract
         }
 
         if ($containerOrInitializer instanceof \Closure) {
-            $s = hrtime(true);
-            self::getFunctionMemory(function () use ($containerOrInitializer) {
+            $timeMemory = self::getFunctionMemory(function () use ($containerOrInitializer) {
                 $this->container = ($containerOrInitializer)();
             });
-            self::executionTime($s);
-            print "\n";
+            print "Memory usage: Net: " . $timeMemory->formatMemoryNet() . " bytes, Peak : " . $timeMemory->formatMemoryPeak() . " bytes \n";
+            print  "Time execution: " . $timeMemory->formatTimeExecute() . "\n";
         } else {
             $this->container = $containerOrInitializer;
         }
     }
 
-    protected static function getFunctionMemory(callable $callback): void
+    protected static function getFunctionMemory(callable $callback): TimeExecuteMemoryUse
     {
         $startMemory = memory_get_usage();
         $startPeak = memory_get_peak_usage();
+        $hrStart = hrtime(true);
 
         // Execute the target function
         $callback();
 
-        $endMemory = memory_get_usage();
-        $endPeak = memory_get_peak_usage();
-
-        printf("📊 Net retained: %s  bytes\n📊 Peak allocated: %s bytes\n", \number_format($endMemory - $startMemory), \number_format($endPeak - $startPeak));
-    }
-
-    protected static function executionTime(float $hrStart, string $colorTime = "\e[31m"): void
-    {
-        $executionTime = (hrtime(true) - $hrStart);
-        $milliseconds = round($executionTime / 1e+6, 4);
-
-        $time = $milliseconds > 1000
-            ? round(($executionTime / 1e+9), 4). ' s'
-            : $milliseconds. ' ms';
-
-        print sprintf("⏱️ %sTime: %s\e[0m\n", $colorTime, $time);
+        return new TimeExecuteMemoryUse(
+            $startMemory,
+            memory_get_usage(),
+            $startPeak,
+            memory_get_peak_usage(),
+            $hrStart,
+            hrtime(true),
+        );
     }
 
     protected static function methodToHuman(string $methodName): string
@@ -102,12 +95,34 @@ abstract class DoBenchAbstract
      */
     public function doBenchmark(): void
     {
+        print <<< TABLEHEAD
+
++-----+---------------------------------------------------+-----------------------+----------------+
+|     |                                                   |     Memory usage      |                |
+| No. | Benchmark description                             +-----------+-----------+ Time execution |
+|     |                                                   |    Net    |   Peak    |                |
++-----+---------------------------------------------------+-----------+-----------+----------------|
+
+TABLEHEAD;
+        $n = 1;
         foreach ($this->benchmarkMethods as $description => $method) {
-            printf("\033[32m%s\033[0m\n", $description);
-            $s = hrtime(true);
-            self::getFunctionMemory(fn() => $method->invoke($this));
-            self::executionTime($s, "\033[33m");
-            print "\n";
+            $timeMemory = self::getFunctionMemory(fn() => $method->invoke($this));
+
+            $no = str_pad($n . '', 5, ' ', STR_PAD_BOTH);
+            $net = str_pad($timeMemory->formatMemoryNet(4), 11, ' ', STR_PAD_BOTH);
+            $peak = str_pad($timeMemory->formatMemoryPeak(4), 11, ' ', STR_PAD_BOTH);
+            $time = str_pad($timeMemory->formatTimeExecute(), 16, ' ', STR_PAD_BOTH);
+            $description_cut = \strlen($description) > 50 ?
+                substr($description, 0, 47) . '...'
+                : $description;
+            $prepare_description = ' ' . str_pad($description_cut, 50);
+            print <<< ROW
+|$no|$prepare_description|$net|$peak|$time|
++-----+---------------------------------------------------+-----------+-----------+----------------+
+
+ROW;
+
+            ++$n;
         }
     }
 }
