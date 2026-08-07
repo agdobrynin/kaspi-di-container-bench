@@ -5,56 +5,41 @@ declare(strict_types=1);
 namespace App;
 
 use App\Services\Interfaces\ServiceInterface;
-use function hrtime;
-use function sprintf;
 
 final class DoBench extends DoBenchAbstract
 {
-    public function doBenchmarkFindTaggedDefinitions(): void
+    private string $tag1 = 'tags.name_bar';
+    private string $tag2 = 'tags.name_foo';
+
+    private string $interfaceName = ServiceInterface::class;
+
+    #[BenchmarkDescription('First call for tag "tags.name_bar"')]
+    public function doBenchmarkFirstCallFindTagName1(): void
     {
-        $container = $this->container;
-        $tag1 = 'tags.name_bar';
+        [...$this->container->findTaggedDefinitions($this->tag1)];
+    }
 
-        self::getFunctionMemory(static function () use ($container, $tag1) {
-            $s = hrtime(true);
-            $taggedAsTag1 = [...$container->findTaggedDefinitions($tag1)];
-            $label = sprintf('First call for tag "%s". Found %d tags.', $tag1, \count($taggedAsTag1));
-            self::executionTime($s, $label);
-        });
-        print "\n";
+    #[BenchmarkDescription('Second call for tag "tags.name_bar"')]
+    public function doBenchmarkSecondCallFindTagName1(): void
+    {
+        [...$this->container->findTaggedDefinitions($this->tag1)];
+    }
 
-        self::getFunctionMemory(static function () use ($container, $tag1) {
-            $s = hrtime(true);
-            $taggedAsTag1 = [...$container->findTaggedDefinitions($tag1)];
-            $label = sprintf('Second call for tag "%s". Found %d tags.', $tag1, \count($taggedAsTag1));
-            self::executionTime($s, $label, "\033[32m");
-        });
-        print "\n";
+    #[BenchmarkDescription('Second call for tag "tags.name_foo"')]
+    public function doBenchmarkFirstCallFindTagName2(): void
+    {
+        [...$this->container->findTaggedDefinitions($this->tag2)];
+    }
 
-        $tag2 = 'tags.name_foo';
+    #[BenchmarkDescription('Second call for tag "tags.name_foo"')]
+    public function doBenchmarkSecondCallFindTagName2(): void
+    {
+        [...$this->container->findTaggedDefinitions($this->tag2)];
+    }
 
-        self::getFunctionMemory(static function () use ($container, $tag2) {
-            $s = hrtime(true);
-            $taggedAsTag2 = [...$container->findTaggedDefinitions($tag2)];
-            $label = sprintf('First call for tag "%s". Found %d tags.', $tag2, \count($taggedAsTag2));
-            self::executionTime($s, $label, "\033[33m");
-        });
-        print "\n";
-
-        self::getFunctionMemory(static function () use ($container, $tag2) {
-            $s = hrtime(true);
-            $taggedAsTag2 = [...$container->findTaggedDefinitions($tag2)];
-            $label = sprintf('First call for tag "%s". Found %d tags.', $tag2, \count($taggedAsTag2));
-            self::executionTime($s, $label, "\033[34m");
-        });
-        print "\n";
-
-        self::getFunctionMemory(static function () use ($container) {
-            $s = hrtime(true);
-            $taggedAsTagInterface = [...$container->findTaggedDefinitions(ServiceInterface::class)];
-            $label = sprintf('Find via interface "%s". Found %d tags.', ServiceInterface::class, \count($taggedAsTagInterface));
-            self::executionTime($s, $label, "\033[35m");
-        });
-        print "\n";
+    #[BenchmarkDescription('Find via interface name "' . ServiceInterface::class . '"')]
+    public function doBenchmarkFirstCallFindTagAsInterfaceName(): void
+    {
+        [...$this->container->findTaggedDefinitions($this->interfaceName)];
     }
 }

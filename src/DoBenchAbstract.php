@@ -4,17 +4,15 @@ declare(strict_types=1);
 
 namespace App;
 
-use Kaspi\DiContainer\Interfaces\DiContainerInterface;
 use Closure;
+use Kaspi\DiContainer\Interfaces\DiContainerInterface;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
-use function array_filter;
 use function hrtime;
-use function ltrim;
-use function printf;
-use function memory_get_usage;
 use function memory_get_peak_usage;
+use function memory_get_usage;
+use function printf;
 use function round;
 use function sprintf;
 use function str_starts_with;
@@ -26,7 +24,7 @@ abstract class DoBenchAbstract
     protected DiContainerInterface $container;
 
     /**
-     * @var ReflectionMethod[]
+     * @var array<string, ReflectionMethod>
      */
     protected array $benchmarkMethods = [];
 
@@ -34,26 +32,31 @@ abstract class DoBenchAbstract
         string $name,
         DiContainerInterface|Closure $containerOrInitializer,
     ) {
-        printf("\033[32mContainer: %s\033[0m\n", $name);
+        printf("\n\e[0;31mContainer: %s\033[0m\n%s\n", $name, \str_repeat('-', strlen($name)));
 
         // Cheks available benchmark methods
         $methods = (new ReflectionClass($this))
             ->getMethods(ReflectionMethod::IS_PUBLIC)
         ;
 
-        $this->benchmarkMethods = array_filter(
-            $methods,
-            static fn (ReflectionMethod $method) => !$method->isStatic()
+        foreach ($methods as $method) {
+            if (!$method->isStatic()
                 && 'doBenchmark' !== $method->getName()
-                && str_starts_with($method->getName(), self::PREFIX_BENCH_METHOD_NAME)
-        );
+                && str_starts_with($method->getName(), self::PREFIX_BENCH_METHOD_NAME)) {
+                $attribute = $method->getAttributes(BenchmarkDescription::class)[0] ?? null;
+                $description = null !== $attribute
+                    ? $attribute->newInstance()->description
+                    : self::methodToHuman($method->getName());
+                $this->benchmarkMethods[$description] = $method;
+            }
+        }
 
         if ($containerOrInitializer instanceof \Closure) {
+            $s = hrtime(true);
             self::getFunctionMemory(function () use ($containerOrInitializer) {
-                $s = hrtime(true);
                 $this->container = ($containerOrInitializer)();
-                self::executionTime($s, 'Initialize container.');
             });
+            self::executionTime($s);
             print "\n";
         } else {
             $this->container = $containerOrInitializer;
@@ -74,7 +77,7 @@ abstract class DoBenchAbstract
         printf("📊 Net retained: %s  bytes\n📊 Peak allocated: %s bytes\n", \number_format($endMemory - $startMemory), \number_format($endPeak - $startPeak));
     }
 
-    protected static function executionTime(float $hrStart, string $labelPrefix = "", string $colorTime = "\e[31m"): void
+    protected static function executionTime(float $hrStart, string $colorTime = "\e[31m"): void
     {
         $executionTime = (hrtime(true) - $hrStart);
         $milliseconds = round($executionTime / 1e+6, 4);
@@ -83,13 +86,13 @@ abstract class DoBenchAbstract
             ? round(($executionTime / 1e+9), 4). ' s'
             : $milliseconds. ' ms';
 
-        print ltrim(sprintf("%s %sTime: %s\e[0m\n", $labelPrefix, $colorTime, $time));
+        print sprintf("⏱️ %sTime: %s\e[0m\n", $colorTime, $time);
     }
 
     protected static function methodToHuman(string $methodName): string
     {
         $step1 = str_replace(['_', '-'], ' ', $methodName);
-        $step2 = preg_replace('/(?<!\ )[A-Z]/', ' $0', $step1);
+        $step2 = preg_replace('/(?<! )[A-Z]/', ' $0', $step1);
 
         return ucfirst(strtolower(trim($step2)));
     }
@@ -99,9 +102,12 @@ abstract class DoBenchAbstract
      */
     public function doBenchmark(): void
     {
-        foreach ($this->benchmarkMethods as $method) {
-            printf("\033[32m%s\033[0m\n", self::methodToHuman($method->getName()));
-            $method->invoke($this);
+        foreach ($this->benchmarkMethods as $description => $method) {
+            printf("\033[32m%s\033[0m\n", $description);
+            $s = hrtime(true);
+            self::getFunctionMemory(fn() => $method->invoke($this));
+            self::executionTime($s, "\033[33m");
+            print "\n";
         }
     }
 }
