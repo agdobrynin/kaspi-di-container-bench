@@ -32,7 +32,7 @@ final class DoBench extends DoBenchAbstract
     }
 
     #[Benchmark(
-        'Second call for tag "tags.name_foo"',
+        'First call for tag "tags.name_foo"',
         priority: 51,
     )]
     public function firstCallFindTagName2(): void
