@@ -14,21 +14,21 @@ bench-hosted: fixtures composer-prepare run-bench-only
 fixtures:
 	$(generate-fixtures)
 
-.PHONY: fixtures-clean
+.PHONY: clean-fixtures
 fixtures-clean-cmd := find src/Services -name "*.php" -exec rm -f {} \;
 
-fixtures-clean:
+clean-fixtures:
 	$(fixtures-clean-cmd)
 
-.PHONY: vendor-clean
+.PHONY: clean-vendor
 vendor-clean-v4.5.0-cmd := rm -rf $(working-dir-v4.5.0)/vendor/ $(working-dir-v4.5.0)/composer.lock
 vendor-clean-v4.x-dev-cmd := rm -rf $(working-dir-v4.x-dev)/vendor/ $(working-dir-v4.x-dev)/composer.lock
 
-vendor-clean:
+clean-vendor:
 	$(vendor-clean-v4.5.0-cmd)
 	$(vendor-clean-v4.x-dev-cmd)
 
-clean-all: fixtures-clean vendor-clean
+clean-all: clean-fixtures clean-vendor
 
 .PHONY: composer-prepare
 composer-install-cmd := composer i --no-dev
@@ -45,9 +45,9 @@ run-bench-only:
 
 .PHONY: bench-in-docker
 bench-in-docker:
-	$(docker-run) sh -c "$(generate-fixtures) && \
-	$(composer-install-cmd) --working-dir=$(working-dir-v4.5.0) && \
-	$(composer-install-cmd) --working-dir=$(working-dir-v4.x-dev) && \
-	php -v && \
-	$(bench-v4.5.0-cmd) && \
+	@$(docker-run) sh -c "$(generate-fixtures)"
+	@$(docker-run) sh -c "$(composer-install-cmd) --working-dir=$(working-dir-v4.5.0) && \
+	$(bench-v4.5.0-cmd)"
+
+	@$(docker-run) sh -c "$(composer-install-cmd) --working-dir=$(working-dir-v4.x-dev) && \
 	$(bench-v4.x-dev-cmd)"
