@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App;
 
+use JsonException;
 use function file_exists;
 use function file_get_contents;
 use function file_put_contents;
@@ -44,10 +45,14 @@ final class ResultFile
 
         if (file_exists($fileName)) {
             $content = file_get_contents($fileName);
-            $results = json_decode($content, true, flags: JSON_THROW_ON_ERROR);
+            try {
+                $results = json_decode($content, true, flags: JSON_THROW_ON_ERROR);
+            } catch (JsonException) {
+                $results = [];
+            }
         }
 
-        $results[$this->doBenchName] = $this->results;
+        $results[$this->doBenchName]['benchmarks'] = $this->results;
 
         $json = json_encode($results, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_BIGINT_AS_STRING);
 
