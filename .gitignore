@@ -3,6 +3,6 @@
 !**/.git-keep
 **/vendor
 **/composer.lock
-/var/
+var/
 src/Services
 src/_di_config.php
