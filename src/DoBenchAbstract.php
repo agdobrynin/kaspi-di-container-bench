@@ -75,13 +75,17 @@ abstract class DoBenchAbstract
         // Execute the target function
         $callback();
 
+        $endMemory = memory_get_usage();
+        $endPeak = memory_get_peak_usage();
+        $hrEnd = hrtime(true);
+
         return new TimeExecuteMemoryUse(
             $startMemory,
-            memory_get_usage(),
+            $endMemory,
             $startPeak,
-            memory_get_peak_usage(),
+            $endPeak,
             $hrStart,
-            hrtime(true),
+            $hrEnd,
         );
     }
 
