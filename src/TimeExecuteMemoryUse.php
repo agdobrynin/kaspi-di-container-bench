@@ -14,29 +14,29 @@ use function round;
 final class TimeExecuteMemoryUse
 {
     public function __construct(
-        public readonly int   $startMemory,
-        private readonly int  $endMemory,
-        public readonly int   $startPeak,
-        public readonly int   $endPeak,
-        public readonly float $hrStartTime,
-        public readonly float $hrEndTime,
+        public readonly int   $startMemoryUsage,
+        private readonly int  $endMemoryUsage,
+        public readonly int   $startMemoryPeak,
+        public readonly int   $endMemoryPeak,
+        public readonly float $startHrTime,
+        public readonly float $endHrTime,
     )
     {
     }
 
     public function formatMemoryNet(int $precision = 2): string
     {
-        return $this->formatBytes($this->endMemory - $this->startMemory, $precision);
+        return $this->formatBytes($this->endMemoryUsage - $this->startMemoryUsage, $precision);
     }
 
     public function formatMemoryPeak(int $precision = 2): string
     {
-        return $this->formatBytes($this->endPeak - $this->startPeak, $precision);
+        return $this->formatBytes($this->endMemoryPeak - $this->startMemoryPeak, $precision);
     }
 
     public function formatTimeExecute(): string
     {
-        $executionTime = $this->hrEndTime - $this->hrStartTime;
+        $executionTime = $this->endHrTime - $this->startHrTime;
         $milliseconds = round($executionTime / 1e+6, 4);
 
         return $milliseconds > 1000
