@@ -44,8 +44,8 @@ composer-prepare:
 	$(composer-install-cmd) --working-dir=$(working-dir-v4.5.0)
 	$(composer-install-cmd) --working-dir=$(working-dir-v4.x-dev)
 
-.PHONY: run-bench-only
-run-bench-only:
+.PHONY: bench-in-hosted-only-bench
+bench-in-hosted-only-bench:
 	$(bench-v4.5.0-cmd)
 	$(bench-v4.x-dev-cmd)
 
