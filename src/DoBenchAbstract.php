@@ -28,7 +28,7 @@ abstract class DoBenchAbstract
      */
     protected array $benchmarkMethods = [];
 
-    public function __construct(
+    final public function __construct(
         protected readonly string                      $name,
         protected readonly DiContainerBuilderInterface $containerBuilder,
     ) {
