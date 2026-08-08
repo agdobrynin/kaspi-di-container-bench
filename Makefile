@@ -8,7 +8,7 @@ bench-v4.5.0-cmd := php $(working-dir-v4.5.0)/src/bench.php
 bench-v4.x-dev-cmd := php $(working-dir-v4.x-dev)/src/bench.php
 
 
-bench-in-hosted: fixtures composer-prepare run-bench-only
+bench-in-hosted: fixtures composer-prepare bench-in-hosted-only-bench
 
 .PHONY: fixtures
 fixtures:
