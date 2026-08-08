@@ -23,8 +23,8 @@ interface ServiceInterface {}
 
 for($i=0; $i < $classesCount; $i++) {
     $autowire = '';
-    if (0 === (\random_int(0, $classesCount) % 2)) {
-        $suffix = $tagSuffix[random_int(0, \count($tagSuffix) - 1)];
+    if (0 === (random_int(0, $classesCount) % 2)) {
+        $suffix = $tagSuffix[random_int(0, count($tagSuffix) - 1)];
         $tag = '\'tags.name_'.$suffix.'\'';
         $autowire = <<< AUTOWIRE
 use Kaspi\DiContainer\Attributes\{Autowire, Tag};
