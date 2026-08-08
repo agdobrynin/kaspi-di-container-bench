@@ -28,10 +28,7 @@ abstract class DoBenchAbstract
      */
     protected array $benchmarkMethods = [];
 
-    final public function __construct(
-        protected readonly string                      $name,
-        protected readonly DiContainerBuilderInterface $containerBuilder,
-    ) {
+    final public function __construct(protected readonly DiContainerBuilderInterface $containerBuilder) {
         // Cheks available benchmark methods
         $methods = (new ReflectionClass($this))
             ->getMethods(ReflectionMethod::IS_PUBLIC)
@@ -99,10 +96,8 @@ abstract class DoBenchAbstract
     /**
      * @throws ReflectionException
      */
-    final public function doBenchmark(): void
+    final public function doBenchmark(?ResultFile $resultFile = null): void
     {
-        printf("\n\033[1;31m%s\033[0m\n", $this->name);
-
         print <<< TABLEHEAD
 
 +-----+---------------------------------------------------+-----------------------+----------------+
@@ -131,9 +126,12 @@ TABLEHEAD;
 ROW;
 
             ++$n;
+
+            $resultFile?->attachTo($benchmarkMethod->description, $timeMemory);
         }
 
         print "\n";
+        $resultFile?->save();
     }
 
     final protected function buildContainer(): void

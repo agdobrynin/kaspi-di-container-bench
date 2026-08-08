@@ -4,15 +4,21 @@ declare(strict_types=1);
 namespace ContainerV45;
 
 use App\DoBench;
+use App\ResultFile;
 use Kaspi\DiContainer\DiContainerBuilder;
+use function dirname;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
 $configFile = dirname(__DIR__, 2) . '/src/Services/_di_config.php';
 
 (new DoBench(
-    'v4.5.0',
     (new DiContainerBuilder())
         ->load($configFile),
 ))
-    ->doBenchmark();
+    ->doBenchmark(
+        new ResultFile(
+            'v4.5.0',
+            dirname(__DIR__, 2) . '/src/var',
+        )
+    );
