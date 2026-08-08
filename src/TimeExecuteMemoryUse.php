@@ -15,7 +15,7 @@ final class TimeExecuteMemoryUse
 {
     public function __construct(
         public readonly int   $startMemoryUsage,
-        private readonly int  $endMemoryUsage,
+        public readonly int  $endMemoryUsage,
         public readonly int   $startMemoryPeak,
         public readonly int   $endMemoryPeak,
         public readonly float $startHrTime,
@@ -56,5 +56,4 @@ final class TimeExecuteMemoryUse
 
         return round($bytes, $precision) . ' ' . $units[$pow];
     }
-
 }
