@@ -1,7 +1,7 @@
 SHELL := /bin/sh
 
 docker-run := docker-compose -f docker-compose.yml run -q --rm php
-generate-fixtures := php generate.php
+generate-fixtures := php generate_fixtures.php
 working-dir-v4.5.0 := v4.5.0
 working-dir-v4.x-dev := v4.x-dev
 bench-v4.5.0-cmd := php $(working-dir-v4.5.0)/src/bench.php
