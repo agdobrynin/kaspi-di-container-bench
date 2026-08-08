@@ -20,6 +20,12 @@ fixtures-clean-cmd := find src/Services -name "*.php" -exec rm -f {} \;
 clean-fixtures:
 	$(fixtures-clean-cmd)
 
+.PHONY: clean-var-dir
+clean-var-dir-cmd := find src/var/ -type f ! -name ".git-keep" -delete
+
+clean-var-dir:
+	$(clean-var-dir-cmd)
+
 .PHONY: clean-vendor
 vendor-clean-v4.5.0-cmd := rm -rf $(working-dir-v4.5.0)/vendor/ $(working-dir-v4.5.0)/composer.lock
 vendor-clean-v4.x-dev-cmd := rm -rf $(working-dir-v4.x-dev)/vendor/ $(working-dir-v4.x-dev)/composer.lock
@@ -28,7 +34,7 @@ clean-vendor:
 	$(vendor-clean-v4.5.0-cmd)
 	$(vendor-clean-v4.x-dev-cmd)
 
-clean-all: clean-fixtures clean-vendor
+clean-all: clean-var-dir clean-fixtures clean-vendor
 
 .PHONY: composer-prepare
 composer-install-cmd := composer i --no-dev
