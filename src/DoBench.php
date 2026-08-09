@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App;
 
 use App\Services\Interfaces\ServiceInterface;
+use DomainException;
+use function sprintf;
 
 final class DoBench extends DoBenchAbstract
 {
@@ -17,7 +19,13 @@ final class DoBench extends DoBenchAbstract
     )]
     public function firstCallFindTagName1(): void
     {
-        [...$this->container->findTaggedDefinitions($this->tag1)];
+        $definitions = [...$this->container->findTaggedDefinitions($this->tag1)];
+
+        if ($definitions === []) {
+            throw new DomainException(
+                sprintf('Tag "%s" not found.', $this->tag1)
+            );
+        }
     }
 
     #[Benchmark(
@@ -26,12 +34,24 @@ final class DoBench extends DoBenchAbstract
     )]
     public function secondCallFindTagName1(): void
     {
-        [...$this->container->findTaggedDefinitions($this->tag1)];
+        $definitions = [...$this->container->findTaggedDefinitions($this->tag1)];
+
+        if ($definitions === []) {
+            throw new DomainException(
+                sprintf('Tag "%s" not found.', $this->tag1)
+            );
+        }
     }
 
     #[Benchmark('Find via interface name "' . ServiceInterface::class . '"')]
     public function firstCallFindTagAsInterfaceName(): void
     {
-        [...$this->container->findTaggedDefinitions($this->interfaceName)];
+        $definitions = [...$this->container->findTaggedDefinitions($this->interfaceName)];
+
+        if ($definitions === []) {
+            throw new DomainException(
+                sprintf('Services implement "%s" not found.', $this->interfaceName)
+            );
+        }
     }
 }
