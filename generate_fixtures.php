@@ -8,11 +8,6 @@ $fixturesDir = [
 $classServiceNamePrefix = 'Service';
 $namespaceService = 'App\\Services';
 
-$tagSuffix = [
-    'foo',
-    'bar',
-];
-
 $diConfigure = [];
 
 file_put_contents(
@@ -37,12 +32,10 @@ do {
     $implementInterface = '';
 
     if (0 === (random_int(0, 100) % 2)) {
-        $suffix = $tagSuffix[random_int(0, count($tagSuffix) - 1)];
-        $tag = '\'tags.name_'.$suffix.'\'';
         $autowireAttribute = <<< AUTOWIRE
 use Kaspi\DiContainer\Attributes\{Autowire, Tag};
 
-#[Autowire(tags: new Tag($tag))]
+#[Autowire(tags: new Tag('tags.name_bar'))]
 AUTOWIRE;
     } else {
         $implementInterface = 'implements \App\Services\Interfaces\ServiceInterface';
@@ -61,8 +54,6 @@ final class $serviceShortName $implementInterface
 
 TMPL;
 
-    $diConfigure[] = $namespaceService.'\\'.$serviceShortName;
-
     if (null === $injectService) {
         $injectService = 'public readonly \\'.$namespaceService.'\\'.$serviceShortName.' $service';
     }
@@ -71,19 +62,5 @@ TMPL;
 
     $countOfService--;
 } while ($countOfService > 0);
-
-shuffle($diConfigure);
-
-$config = '<?php
-use function Kaspi\DiContainer\diAutowire;
-
-return static function (): \Generator {'.PHP_EOL;
-
-foreach ($diConfigure as $class) {
-    $config .= \sprintf('   yield diAutowire(%s::class);'.PHP_EOL, $class);
-}
-$config.='};'.PHP_EOL;
-
-file_put_contents($fixturesDir['services'].'/_di_config.php', $config);
 
 print "\n \033[1;32m📁 The fixtures were successfully generated.\033[0m\n\n";
