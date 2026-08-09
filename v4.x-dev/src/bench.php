@@ -12,7 +12,8 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 (new DoBench(
     (new DiContainerBuilder())
-        ->import('App\\', dirname(__DIR__, 2) . '/src/Services')
+        ->import('App\\', dirname(__DIR__, 2) . '/src/Services'),
+    'Build container with `import()` definitions'
 ))
     ->doBenchmark(
         new ResultFile(

@@ -28,7 +28,10 @@ abstract class DoBenchAbstract
      */
     protected array $benchmarkMethods = [];
 
-    final public function __construct(protected readonly DiContainerBuilderInterface $containerBuilder) {
+    final public function __construct(
+        protected readonly DiContainerBuilderInterface $containerBuilder,
+        protected readonly string $buildContainerBenchmarkDescription = 'Build container',
+    ) {
         // Cheks available benchmark methods
         $methods = (new ReflectionClass($this))
             ->getMethods(ReflectionMethod::IS_PUBLIC)
@@ -60,7 +63,7 @@ abstract class DoBenchAbstract
         array_unshift(
             $this->benchmarkMethods,
             new BenchMethod(
-                'Build container',
+                $this->buildContainerBenchmarkDescription,
                 new ReflectionMethod($this, 'buildContainer'),
             )
         );
