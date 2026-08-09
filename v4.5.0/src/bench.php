@@ -10,11 +10,9 @@ use function dirname;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$configFile = dirname(__DIR__, 2) . '/src/Services/_di_config.php';
-
 (new DoBench(
     (new DiContainerBuilder())
-        ->load($configFile),
+        ->import('App\\', dirname(__DIR__, 2) . '/src/Services')
 ))
     ->doBenchmark(
         new ResultFile(
