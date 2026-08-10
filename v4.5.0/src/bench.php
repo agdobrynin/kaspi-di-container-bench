@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace ContainerV45;
 
+use App\BenchmarkPrinter;
 use App\BenchmarkResultsToFile;
 use App\DoBench;
 use App\BenchmarkResults;
@@ -15,9 +16,11 @@ $containerBuilder = (new DiContainerBuilder())
     ->import('App\\', dirname(__DIR__, 2) . '/src/Services');
 $benchmarkResults = new BenchmarkResults('v4.5.0');
 
-$benchmark = new DoBench($containerBuilder, $benchmarkResults);
-$results = $benchmark->doBenchmark();
-$benchmark->displayResults();
+$results = (new DoBench($containerBuilder, $benchmarkResults))
+    ->doBenchmark();
+
+(new BenchmarkPrinter($results))
+    ->print();
 
 (new BenchmarkResultsToFile(
     $results,

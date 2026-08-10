@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace ContainerV46Dev;
 
+use App\BenchmarkPrinter;
 use App\BenchmarkResultsToFile;
 use App\DoBench;
 use App\BenchmarkResults;
@@ -17,8 +18,12 @@ $benchmarkResults = new BenchmarkResults('v4.x-dev');
 
 $benchmark = new DoBench($containerBuilder, $benchmarkResults);
 
-$results = $benchmark->doBenchmark();
-$benchmark->displayResults();
+$results = (new DoBench($containerBuilder, $benchmarkResults))
+    ->doBenchmark();
+
+(new BenchmarkPrinter($results))
+    ->print();
+
 (new BenchmarkResultsToFile(
     $results,
     dirname(__DIR__, 2) . '/src/var/results.json',
