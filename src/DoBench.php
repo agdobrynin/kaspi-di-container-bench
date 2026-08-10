@@ -6,6 +6,7 @@ namespace App;
 
 use App\Services\Interfaces\ServiceInterface;
 use DomainException;
+use Kaspi\DiContainer\DiContainerBuilder;
 use function sprintf;
 
 final class DoBench extends DoBenchAbstract
@@ -16,6 +17,7 @@ final class DoBench extends DoBenchAbstract
     #[Benchmark(
         'First call for tag "tags.name_bar"',
         priority: 101,
+        iterations: 10,
     )]
     public function firstCallFindTagName1(): void
     {
@@ -31,6 +33,7 @@ final class DoBench extends DoBenchAbstract
     #[Benchmark(
         'Second call for tag "tags.name_bar"',
         priority: 100,
+        iterations: 10,
     )]
     public function secondCallFindTagName1(): void
     {
@@ -43,7 +46,10 @@ final class DoBench extends DoBenchAbstract
         }
     }
 
-    #[Benchmark('Find via interface name "' . ServiceInterface::class . '"')]
+    #[Benchmark(
+        'Find via interface name "' . ServiceInterface::class . '"',
+        iterations: 10,
+    )]
     public function firstCallFindTagAsInterfaceName(): void
     {
         $definitions = [...$this->container->findTaggedDefinitions($this->interfaceName)];

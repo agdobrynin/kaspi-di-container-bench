@@ -12,5 +12,6 @@ final class BenchMethod
         public readonly string $description,
         public readonly ReflectionMethod $method,
         public readonly int $priority = 0,
+        public readonly int $iterations = 1,
     ) {}
 }

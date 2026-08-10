@@ -13,7 +13,6 @@ use function array_unshift;
 use function hrtime;
 use function memory_get_peak_usage;
 use function memory_get_usage;
-use function printf;
 use function str_pad;
 use function substr;
 use function usort;
@@ -30,6 +29,7 @@ abstract class DoBenchAbstract
 
     final public function __construct(
         protected readonly DiContainerBuilderInterface $containerBuilder,
+        protected readonly BenchmarkResults $benchmarkResults,
         protected readonly string $buildContainerBenchmarkDescription = 'Build container',
     ) {
         // Cheks available benchmark methods
@@ -52,7 +52,12 @@ abstract class DoBenchAbstract
                     ? $attributeBenchmark->description
                     : self::methodToHuman($method->getName());
 
-                $this->benchmarkMethods[] = new BenchMethod($description, $method, $attributeBenchmark->priority);
+                $this->benchmarkMethods[] = new BenchMethod(
+                    $description,
+                    $method,
+                    $attributeBenchmark->priority,
+                    $attributeBenchmark->iterations,
+                );
             }
         }
 
@@ -69,7 +74,7 @@ abstract class DoBenchAbstract
         );
     }
 
-    final protected static function getFunctionMemory(callable $callback): TimeExecuteMemoryUse
+    final protected static function getFunctionMemory(callable $callback): TimeExecuteMemoryUseIteration
     {
         $startMemory = memory_get_usage();
         $startPeak = memory_get_peak_usage();
@@ -82,7 +87,7 @@ abstract class DoBenchAbstract
         $endPeak = memory_get_peak_usage();
         $hrEnd = hrtime(true);
 
-        return new TimeExecuteMemoryUse(
+        return new TimeExecuteMemoryUseIteration(
             $startMemory,
             $endMemory,
             $startPeak,
@@ -103,42 +108,53 @@ abstract class DoBenchAbstract
     /**
      * @throws ReflectionException
      */
-    final public function doBenchmark(?ResultFile $resultFile = null): void
+    final public function doBenchmark(): BenchmarkResults
+    {
+        foreach ($this->benchmarkMethods as $benchmarkMethod) {
+            for ($i = 0; $i < $benchmarkMethod->iterations; ++$i) {
+                $timeMemory = self::getFunctionMemory(fn() => $benchmarkMethod->method->invoke($this));
+                $this->benchmarkResults->attach($benchmarkMethod->description, $timeMemory);
+            }
+        }
+
+        return $this->benchmarkResults;
+    }
+
+    final public function displayResults(): void
     {
         print <<< TABLEHEAD
 
-+-----+---------------------------------------------------+-----------------------+----------------+
-|     |                                                   |     Memory usage      |                |
-| No. | Benchmark description                             +-----------+-----------+ Time execution |
-|     |                                                   |    Net    |   Peak    |                |
-+-----+---------------------------------------------------+-----------+-----------+----------------|
++-----+-------+---------------------------------------------------+-----------------------+----------------+
+|     |       |                                                   |     Memory usage      |                |
+| No. | Iter. | Benchmark description                             +-----------+-----------+ Time execution |
+|     |       |                                                   |    Net    |   Peak    |                |
++-----+-------+---------------------------------------------------+-----------+-----------+----------------|
 
 TABLEHEAD;
+        $avgResults = $this->benchmarkResults->getAvgResults();
         $n = 1;
-        foreach ($this->benchmarkMethods as $benchmarkMethod) {
-            $timeMemory = self::getFunctionMemory(fn() => $benchmarkMethod->method->invoke($this));
 
+        foreach ($avgResults as $benchmarkDescription => $timeExecuteMemoryUseAvg) {
             $no = str_pad($n . '', 5, ' ', STR_PAD_BOTH);
-            $net = str_pad($timeMemory->formatMemoryNet(4), 11, ' ', STR_PAD_BOTH);
-            $peak = str_pad($timeMemory->formatMemoryPeak(4), 11, ' ', STR_PAD_BOTH);
-            $time = str_pad($timeMemory->formatTimeExecute(), 16, ' ', STR_PAD_BOTH);
-            $description_cut = \strlen($benchmarkMethod->description) > 50 ?
-                substr($benchmarkMethod->description, 0, 47) . '...'
-                : $benchmarkMethod->description;
+            $iter = str_pad($timeExecuteMemoryUseAvg->iterations . '', 7, ' ', STR_PAD_BOTH);
+
+            $description_cut = \strlen($benchmarkDescription) > 50 ?
+                substr($benchmarkDescription, 0, 47) . '...'
+                : $benchmarkDescription;
             $prepare_description = ' ' . str_pad($description_cut, 50);
+
+            $net = str_pad(Formatter::formatBytes($timeExecuteMemoryUseAvg->memoryUsage, 4), 11, ' ', STR_PAD_BOTH);
+            $peak = str_pad(Formatter::formatBytes($timeExecuteMemoryUseAvg->memoryPeak, 4), 11, ' ', STR_PAD_BOTH);
+            $time = str_pad(Formatter::formatTimeExecute($timeExecuteMemoryUseAvg->hrTime, 4), 16, ' ', STR_PAD_BOTH);
             print <<< ROW
-|$no|$prepare_description|$net|$peak|$time|
-+-----+---------------------------------------------------+-----------+-----------+----------------+
+|$no|$iter|$prepare_description|$net|$peak|$time|
++-----+-----------------------------------------------------------+-----------+-----------+----------------+
 
 ROW;
-
-            ++$n;
-
-            $resultFile?->attachTo($benchmarkMethod->description, $timeMemory);
+            $n++;
         }
 
         print "\n";
-        $resultFile?->save();
     }
 
     final protected function buildContainer(): void

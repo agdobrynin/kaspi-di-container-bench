@@ -11,7 +11,8 @@ final class Benchmark
 {
     public function __construct(
         public readonly string $description = '',
-        public readonly int    $priority = 0,
+        public readonly int $priority = 0,
+        public readonly int $iterations = 1,
     )
     {
     }
