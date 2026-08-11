@@ -26,6 +26,6 @@ $results = (new DoBench($containerBuilder, $benchmarkResults))
 
 (new BenchmarkResultsToFile(
     $results,
-    dirname(__DIR__, 2) . '/src/var/results.json',
+    dirname(__DIR__, 2) . '/var/results.json',
 ))
     ->save();
