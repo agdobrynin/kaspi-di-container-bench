@@ -19,9 +19,11 @@ $fixtures = new class (
     ) {}
 };
 
+
 // Generate interface
-$fileInterface = sprintf('%s/%s.php', $fixtures->interfaceSrc, $fixtures->interfaceName);
-$contentInterface = <<< CONTENT
+if ([] === glob($fixtures->interfaceSrc.'/*.php')) {
+    $fileInterface = sprintf('%s/%s.php', $fixtures->interfaceSrc, $fixtures->interfaceName);
+    $contentInterface = <<< CONTENT
 <?php
 declare(strict_types=1);
 
@@ -31,7 +33,11 @@ interface $fixtures->interfaceName {}
 
 CONTENT;
 
-file_put_contents($fileInterface, $contentInterface);
+    file_put_contents($fileInterface, $contentInterface);
+    print "\033[1;32m📁 The fixtures for interfaces were successfully generated.\033[0m\n";
+} else {
+    print "\033[1;33m📂 The fixtures for interfaces already exist.\033[0m\n";
+}
 
 /*
  * Make services
@@ -39,6 +45,11 @@ file_put_contents($fileInterface, $contentInterface);
 
 $injectService = null;
 $countOfService = 1000;
+
+if ($countOfService === count(glob($fixtures->serviceSrc.'/*.php'))) {
+    print "\033[1;33m📂 The fixtures for services already exist.\033[0m\n";
+    exit(0);
+}
 
 do {
     $serviceShortName = $fixtures->serviceNamePrefix.$countOfService;
@@ -80,4 +91,4 @@ TMPL;
     $countOfService--;
 } while ($countOfService > 0);
 
-print "\n \033[1;32m📁 The fixtures were successfully generated.\033[0m\n\n";
+print "\033[1;32m📁 The fixtures for services were successfully generated.\033[0m\n";
