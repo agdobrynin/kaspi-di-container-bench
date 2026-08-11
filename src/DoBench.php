@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App;
 
-use App\Services\Interfaces\ServiceInterface;
 use DomainException;
-use Kaspi\DiContainer\DiContainerBuilder;
+use Fixtures\Services\Interfaces\ServiceInterface;
 use function sprintf;
 
 final class DoBench extends DoBenchAbstract

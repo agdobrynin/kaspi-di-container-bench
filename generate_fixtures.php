@@ -1,22 +1,37 @@
 <?php
+declare(strict_types=1);
 
-$fixturesDir = [
-    'services' => __DIR__ . '/src/Services/',
-    'interfaces' => __DIR__ . '/src/Services/Interfaces/',
-];
+$fixtures = new class (
+    __DIR__ . '/Fixtures/Services',
+    __DIR__ . '/Fixtures/Services/Interfaces',
+    'Fixtures\\Services',
+    'Fixtures\\Services\\Interfaces',
+    'Service',
+    'ServiceInterface',
+) {
+    public function __construct(
+        public readonly string $serviceSrc,
+        public readonly string $interfaceSrc,
+        public readonly string $serviceNamespace,
+        public readonly string $interfaceNamespace,
+        public readonly string $serviceNamePrefix,
+        public readonly string $interfaceName,
+    ) {}
+};
 
-$classServiceNamePrefix = 'Service';
-$namespaceService = 'App\\Services';
+// Generate interface
+$fileInterface = sprintf('%s/%s.php', $fixtures->interfaceSrc, $fixtures->interfaceName);
+$contentInterface = <<< CONTENT
+<?php
+declare(strict_types=1);
 
-$diConfigure = [];
+namespace $fixtures->interfaceNamespace;
 
-file_put_contents(
-    $fixturesDir['interfaces']. '/ServiceInterface.php',
-    '<?php
-namespace App\Services\Interfaces;
+interface $fixtures->interfaceName {}
 
-interface ServiceInterface {}
-');
+CONTENT;
+
+file_put_contents($fileInterface, $contentInterface);
 
 /*
  * Make services
@@ -26,7 +41,7 @@ $injectService = null;
 $countOfService = 1000;
 
 do {
-    $serviceShortName = $classServiceNamePrefix.$countOfService;
+    $serviceShortName = $fixtures->serviceNamePrefix.$countOfService;
 
     $autowireAttribute = '';
     $implementInterface = '';
@@ -38,14 +53,14 @@ use Kaspi\DiContainer\Attributes\{Autowire, Tag};
 #[Autowire(tags: new Tag('tags.name_bar'))]
 AUTOWIRE;
     } else {
-        $implementInterface = 'implements \App\Services\Interfaces\ServiceInterface';
+        $implementInterface = sprintf('implements \\%s\\%s', $fixtures->interfaceNamespace, $fixtures->interfaceName);
     }
 
     $template = <<< TMPL
 <?php
 declare(strict_types=1);
 
-namespace $namespaceService;
+namespace $fixtures->serviceNamespace;
 $autowireAttribute
 final class $serviceShortName $implementInterface
 {
@@ -55,10 +70,12 @@ final class $serviceShortName $implementInterface
 TMPL;
 
     if (null === $injectService) {
-        $injectService = 'public readonly \\'.$namespaceService.'\\'.$serviceShortName.' $service';
+        $injectService = sprintf('public readonly \\%s\\%s $service', $fixtures->serviceNamespace, $serviceShortName);
     }
 
-    file_put_contents($fixturesDir['services'].'/'.$serviceShortName.'.php', $template);
+    $serviceFile = sprintf('%s/%s.php', $fixtures->serviceSrc, $serviceShortName);
+
+    file_put_contents($serviceFile, $template);
 
     $countOfService--;
 } while ($countOfService > 0);

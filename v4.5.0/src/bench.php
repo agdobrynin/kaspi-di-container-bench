@@ -13,7 +13,7 @@ use function dirname;
 require_once __DIR__ . '/../vendor/autoload.php';
 
 $containerBuilder = (new DiContainerBuilder())
-    ->import('App\\', dirname(__DIR__, 2) . '/src/Services');
+    ->import('Fixtures\\', dirname(__DIR__, 2) . '/Fixtures');
 $benchmarkResults = new BenchmarkResults('v4.5.0');
 
 $results = (new DoBench($containerBuilder, $benchmarkResults))

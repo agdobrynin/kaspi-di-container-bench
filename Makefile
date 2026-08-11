@@ -15,13 +15,13 @@ fixtures:
 	$(generate-fixtures)
 
 .PHONY: clean-fixtures
-fixtures-clean-cmd := find src/Services -name "*.php" -exec rm -f {} \;
+fixtures-clean-cmd := find Fixtures -name "*.php" -exec rm -f {} \;
 
 clean-fixtures:
 	$(fixtures-clean-cmd)
 
 .PHONY: clean-var-dir
-clean-var-dir-cmd := find src/var/ -type f ! -name ".git-keep" -delete
+clean-var-dir-cmd := find var/ -type f ! -name ".git-keep" -delete
 
 clean-var-dir:
 	$(clean-var-dir-cmd)

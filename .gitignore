@@ -4,5 +4,4 @@
 **/vendor
 **/composer.lock
 var/
-src/Services
-src/_di_config.php
+Fixtures/Services
