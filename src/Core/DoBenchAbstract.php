@@ -7,6 +7,8 @@ namespace Kaspi\Benchmark\Core;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
+use function gc_collect_cycles;
+use function gc_enable;
 use function hrtime;
 use function memory_get_peak_usage;
 use function memory_get_usage;
@@ -20,6 +22,8 @@ abstract class DoBenchAbstract
     protected array $benchmarkMethods = [];
 
     final public function __construct(protected readonly BenchmarkResults $benchmarkResults) {
+        gc_enable();
+
         // Find available methods
         /** @var array<non-empty-string, ReflectionMethod> $reflectionMethods */
         $reflectionMethods = [];
@@ -81,6 +85,8 @@ abstract class DoBenchAbstract
 
         // Execute the target function
         $callback();
+
+        gc_collect_cycles();
 
         $endMemory = memory_get_usage();
         $endPeak = memory_get_peak_usage();
