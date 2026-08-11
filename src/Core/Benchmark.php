@@ -13,7 +13,6 @@ final class Benchmark
         public readonly string $description = '',
         public readonly int $priority = 0,
         public readonly int $iterations = 1,
-    )
-    {
-    }
+        public readonly ?string $beforeMethod = null,
+    ) {}
 }

@@ -29,33 +29,48 @@ abstract class DoBenchAbstract
         protected readonly BenchmarkResults $benchmarkResults,
         protected readonly string $buildContainerBenchmarkDescription = 'Build container',
     ) {
-        // Cheks available benchmark methods
-        $methods = (new ReflectionClass($this))
-            ->getMethods(ReflectionMethod::IS_PUBLIC)
-        ;
+        // Find available methods
+        /** @var array<non-empty-string, ReflectionMethod> $reflectionMethods */
+        $reflectionMethods = [];
+        foreach ((new ReflectionClass($this))->getMethods()  as $reflectionMethod) {
+            if ($reflectionMethod->isPublic() && !$reflectionMethod->isStatic()) {
+                $reflectionMethods[$reflectionMethod->getName()] = $reflectionMethod;
+            }
+        }
 
-        foreach ($methods as $method) {
-            if (!$method->isStatic()) {
-                $attribute = $method->getAttributes(Benchmark::class)[0] ?? null;
+        foreach ($reflectionMethods as $methodName => $reflectionMethod) {
+            $attribute = $reflectionMethod->getAttributes(Benchmark::class)[0] ?? null;
 
-                if (null === $attribute) {
-                    continue;
+            if (null === $attribute) {
+                continue;
+            }
+
+            /** @var Benchmark $attributeBenchmark */
+            $attributeBenchmark = $attribute->newInstance();
+
+            $description = '' !== $attributeBenchmark->description
+                ? $attributeBenchmark->description
+                : self::methodToHuman($methodName);
+
+            $beforeReflectionMethod = null;
+
+            if (null !== $attributeBenchmark->beforeMethod) {
+                if (!isset($reflectionMethods[$attributeBenchmark->beforeMethod])) {
+                    throw new \InvalidArgumentException(
+                        sprintf('The attribute `%s` failed validation for the method `%s::%s()`. The value of the `$beforeMethod` parameter must refer to a public class method. Got value "%s".', Benchmark::class, $this::class, $methodName, $attributeBenchmark->beforeMethod)
+                    );
                 }
 
-                /** @var Benchmark $attributeBenchmark */
-                $attributeBenchmark = $attribute->newInstance();
-
-                $description = '' !== $attributeBenchmark->description
-                    ? $attributeBenchmark->description
-                    : self::methodToHuman($method->getName());
-
-                $this->benchmarkMethods[] = new BenchMethod(
-                    $description,
-                    $method,
-                    $attributeBenchmark->priority,
-                    $attributeBenchmark->iterations,
-                );
+                $beforeReflectionMethod = $reflectionMethods[$attributeBenchmark->beforeMethod];
             }
+
+            $this->benchmarkMethods[] = new BenchMethod(
+                $description,
+                $reflectionMethod,
+                $attributeBenchmark->priority,
+                $attributeBenchmark->iterations,
+                $beforeReflectionMethod,
+            );
         }
 
         usort($this->benchmarkMethods, static function (BenchMethod $a, BenchMethod $b) {
@@ -110,8 +125,10 @@ abstract class DoBenchAbstract
         $this->benchmarkResults->reset();
 
         foreach ($this->benchmarkMethods as $benchmarkMethod) {
+            $benchmarkMethod->beforeReflectionMethod?->invoke($this);
+
             for ($i = 0; $i < $benchmarkMethod->iterations; ++$i) {
-                $timeMemory = self::getFunctionMemory(fn() => $benchmarkMethod->method->invoke($this));
+                $timeMemory = self::getFunctionMemory(fn() => $benchmarkMethod->reflectionMethod->invoke($this));
                 $this->benchmarkResults->attach($benchmarkMethod->description, $timeMemory);
             }
         }
