@@ -31,8 +31,8 @@ TABLEHEAD;
                 : $benchmarkDescription;
             $prepare_description = ' ' . str_pad($description_cut, 50);
 
-            $net = str_pad(Formatter::formatBytes($timeExecuteMemoryUseAvg->memoryUsage, 4), 11, ' ', STR_PAD_BOTH);
-            $peak = str_pad(Formatter::formatBytes($timeExecuteMemoryUseAvg->memoryPeak, 4), 11, ' ', STR_PAD_BOTH);
+            $net = str_pad(Formatter::formatBytes($timeExecuteMemoryUseAvg->memoryUsageUsage, 4), 11, ' ', STR_PAD_BOTH);
+            $peak = str_pad(Formatter::formatBytes($timeExecuteMemoryUseAvg->memoryPeakUsage, 4), 11, ' ', STR_PAD_BOTH);
             $time = str_pad(Formatter::formatTimeExecute($timeExecuteMemoryUseAvg->hrTime, 4), 16, ' ', STR_PAD_BOTH);
             print <<< ROW
 |$no|$iter|$prepare_description|$net|$peak|$time|

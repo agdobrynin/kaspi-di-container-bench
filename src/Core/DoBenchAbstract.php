@@ -77,28 +77,28 @@ abstract class DoBenchAbstract
         });
     }
 
-    final protected static function getFunctionMemory(callable $callback): TimeExecuteMemoryUseIteration
+    final protected static function runBenchmark(callable $callback): TimeExecuteMemoryUseIteration
     {
-        $startMemory = memory_get_usage();
-        $startPeak = memory_get_peak_usage();
-        $hrStart = hrtime(true);
+        $startMemoryUsage = memory_get_usage();
+        $startPeakUsage = memory_get_peak_usage();
+        $startHrTime = hrtime(true);
 
         // Execute the target function
         $callback();
 
         gc_collect_cycles();
 
-        $endMemory = memory_get_usage();
-        $endPeak = memory_get_peak_usage();
-        $hrEnd = hrtime(true);
+        $endMemoryUsage = memory_get_usage();
+        $endMemoryPeakUsage = memory_get_peak_usage();
+        $endHrTime = hrtime(true);
 
         return new TimeExecuteMemoryUseIteration(
-            $startMemory,
-            $endMemory,
-            $startPeak,
-            $endPeak,
-            $hrStart,
-            $hrEnd,
+            $startMemoryUsage,
+            $endMemoryUsage,
+            $startPeakUsage,
+            $endMemoryPeakUsage,
+            $startHrTime,
+            $endHrTime,
         );
     }
 
@@ -113,7 +113,7 @@ abstract class DoBenchAbstract
     /**
      * @throws ReflectionException
      */
-    final public function doBenchmark(): BenchmarkResults
+    final public function doBenchmarks(): BenchmarkResults
     {
         $this->benchmarkResults->reset();
 
@@ -121,7 +121,7 @@ abstract class DoBenchAbstract
             $benchmarkMethod->beforeReflectionMethod?->invoke($this);
 
             for ($i = 0; $i < $benchmarkMethod->iterations; ++$i) {
-                $timeMemory = self::getFunctionMemory(fn() => $benchmarkMethod->reflectionMethod->invoke($this));
+                $timeMemory = self::runBenchmark(fn() => $benchmarkMethod->reflectionMethod->invoke($this));
                 $this->benchmarkResults->attach($benchmarkMethod->description, $timeMemory);
             }
         }

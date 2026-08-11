@@ -9,20 +9,20 @@ final class TimeExecuteMemoryUseIteration
     public function __construct(
         public readonly int $startMemoryUsage,
         public readonly int $endMemoryUsage,
-        public readonly int $startMemoryPeak,
-        public readonly int $endMemoryPeak,
+        public readonly int $startMemoryPeakUsage,
+        public readonly int $endMemoryPeakUsage,
         public readonly float $startHrTime,
         public readonly float $endHrTime,
     ) {}
 
-    public function memoryNet(): int
+    public function memoryUsage(): int
     {
         return $this->endMemoryUsage - $this->startMemoryUsage;
     }
 
-    public function memoryPeak(): int
+    public function memoryPeakUsage(): int
     {
-        return $this->endMemoryPeak - $this->startMemoryPeak;
+        return $this->endMemoryPeakUsage - $this->startMemoryPeakUsage;
     }
 
     public function HrTime(): float

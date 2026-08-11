@@ -49,13 +49,17 @@ final class BenchmarkResults
 
         $this->avgResults = [];
 
+        /**
+         * @var non-empty-string $benchmarkDescription
+         * @var list<TimeExecuteMemoryUseIteration> $benchmarkResults
+         */
         foreach ($this->results as $benchmarkDescription => $benchmarkResults) {
             $srcNet = $srcPeak = $srcTime = 0;
             $iterations = count($benchmarkResults);
 
             foreach ($benchmarkResults as $benchmarkResult) {
-                $srcNet += $benchmarkResult->memoryNet();
-                $srcPeak += $benchmarkResult->memoryPeak();
+                $srcNet += $benchmarkResult->memoryUsage();
+                $srcPeak += $benchmarkResult->memoryPeakUsage();
                 $srcTime += $benchmarkResult->HrTime();
             }
 

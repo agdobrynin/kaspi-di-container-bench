@@ -13,7 +13,7 @@ use function dirname;
 require_once __DIR__ . '/../vendor/autoload.php';
 
 $results = (new BenchFindTaggedDefinitions(new BenchmarkResults('v4.5.0')))
-    ->doBenchmark();
+    ->doBenchmarks();
 
 (new BenchmarkPrinter($results))
     ->print();
