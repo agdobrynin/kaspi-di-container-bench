@@ -9,7 +9,7 @@ use function count;
 final class BenchmarkResults
 {
     /**
-     * @var array{non-empty-string, TimeExecuteMemoryUseIteration[]}
+     * @var array{non-empty-string, list<TimeExecuteMemoryUseIteration>}
      */
     private array $results = [];
 
@@ -29,7 +29,7 @@ final class BenchmarkResults
     /**
      * A key of array benchmark description.
      *
-     * @return TimeExecuteMemoryUseIteration
+     * @return TimeExecuteMemoryUseIteration[]
      */
     public function getResults(): array
     {
