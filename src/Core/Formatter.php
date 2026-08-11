@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kaspi\Benchmark\Core;
 
+use function floor;
 use function log;
 use function max;
 use function min;
@@ -21,7 +22,7 @@ final class Formatter
         $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
 
         $bytes = max($bytes, 0);
-        $pow = $bytes ? \floor(log($bytes, 1024)) : 0;
+        $pow = $bytes ? floor(log($bytes, 1024)) : 0;
         $pow = min($pow, count($units) - 1);
 
         $bytes /= 1024 ** $pow;
