@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App;
+namespace Kaspi\Benchmark;
 
+use Kaspi\Benchmark\Core\Benchmark;
+use Kaspi\Benchmark\Core\DoBenchAbstract;
 use DomainException;
 use Fixtures\Services\Interfaces\ServiceInterface;
 use function sprintf;
 
-final class DoBench extends DoBenchAbstract
+final class BenchFindTaggedDefinitions extends DoBenchAbstract
 {
     private string $tag1 = 'tags.name_bar';
     private string $interfaceName = ServiceInterface::class;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App;
+namespace Kaspi\Benchmark\Core;
 
 use JsonException;
 use function array_map;

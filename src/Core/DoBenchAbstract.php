@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App;
+namespace Kaspi\Benchmark\Core;
 
 use Kaspi\DiContainer\Interfaces\DiContainerBuilderInterface;
 use Kaspi\DiContainer\Interfaces\DiContainerInterface;
@@ -13,10 +13,7 @@ use function array_unshift;
 use function hrtime;
 use function memory_get_peak_usage;
 use function memory_get_usage;
-use function str_pad;
-use function substr;
 use function usort;
-use const STR_PAD_BOTH;
 
 abstract class DoBenchAbstract
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App;
+namespace Kaspi\Benchmark\Core;
 
 use function count;
 
@@ -29,7 +29,7 @@ final class BenchmarkResults
     /**
      * A key of array benchmark description.
      *
-     * @return array<non-empty-string, TimeExecuteMemoryUseIteration[]>
+     * @return TimeExecuteMemoryUseIteration
      */
     public function getResults(): array
     {

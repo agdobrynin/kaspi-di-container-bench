@@ -8,7 +8,7 @@
     "autoload": {
         "psr-4": {
             "ContainerV45\\": "src",
-            "App\\": "../src",
+            "Kaspi\\Benchmark\\": "../src",
             "Fixtures\\": "../Fixtures"
         }
     }
