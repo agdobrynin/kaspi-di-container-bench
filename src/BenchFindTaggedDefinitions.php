@@ -8,17 +8,28 @@ use Kaspi\Benchmark\Core\Benchmark;
 use Kaspi\Benchmark\Core\DoBenchAbstract;
 use DomainException;
 use Fixtures\Services\Interfaces\ServiceInterface;
+use Kaspi\DiContainer\DiContainerBuilder;
+use Kaspi\DiContainer\Interfaces\DiContainerInterface;
 use function sprintf;
 
 final class BenchFindTaggedDefinitions extends DoBenchAbstract
 {
+    private DiContainerInterface $container;
     private string $tag1 = 'tags.name_bar';
     private string $interfaceName = ServiceInterface::class;
+
+    private function buildContainer(): void
+    {
+        $this->container ??= (new DiContainerBuilder())
+            ->import('Fixtures\\', __DIR__.'/../Fixtures')
+            ->build();
+    }
 
     #[Benchmark(
         'First call for tag "tags.name_bar"',
         priority: 101,
         iterations: 10,
+        beforeMethod: 'buildContainer'
     )]
     public function firstCallFindTagName1(): void
     {
@@ -35,6 +46,7 @@ final class BenchFindTaggedDefinitions extends DoBenchAbstract
         'Second call for tag "tags.name_bar"',
         priority: 100,
         iterations: 10,
+        beforeMethod: 'buildContainer'
     )]
     public function secondCallFindTagName1(): void
     {
@@ -50,6 +62,7 @@ final class BenchFindTaggedDefinitions extends DoBenchAbstract
     #[Benchmark(
         'Find via interface name "' . ServiceInterface::class . '"',
         iterations: 10,
+        beforeMethod: 'buildContainer'
     )]
     public function firstCallFindTagAsInterfaceName(): void
     {

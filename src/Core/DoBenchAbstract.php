@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace Kaspi\Benchmark\Core;
 
-use Kaspi\DiContainer\Interfaces\DiContainerBuilderInterface;
-use Kaspi\DiContainer\Interfaces\DiContainerInterface;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
-use function array_unshift;
 use function hrtime;
 use function memory_get_peak_usage;
 use function memory_get_usage;
@@ -17,25 +14,18 @@ use function usort;
 
 abstract class DoBenchAbstract
 {
-    protected DiContainerInterface $container;
-
     /**
      * @var BenchMethod[]
      */
     protected array $benchmarkMethods = [];
 
-    final public function __construct(
-        protected readonly DiContainerBuilderInterface $containerBuilder,
-        protected readonly BenchmarkResults $benchmarkResults,
-        protected readonly string $buildContainerBenchmarkDescription = 'Build container',
-    ) {
+    final public function __construct(protected readonly BenchmarkResults $benchmarkResults) {
         // Find available methods
         /** @var array<non-empty-string, ReflectionMethod> $reflectionMethods */
         $reflectionMethods = [];
         foreach ((new ReflectionClass($this))->getMethods()  as $reflectionMethod) {
-            if ($reflectionMethod->isPublic() && !$reflectionMethod->isStatic()) {
-                $reflectionMethods[$reflectionMethod->getName()] = $reflectionMethod;
-            }
+            $reflectionMethods[$reflectionMethod->getName()] = $reflectionMethod;
+
         }
 
         foreach ($reflectionMethods as $methodName => $reflectionMethod) {
@@ -47,6 +37,11 @@ abstract class DoBenchAbstract
 
             /** @var Benchmark $attributeBenchmark */
             $attributeBenchmark = $attribute->newInstance();
+
+            // Benchmark method must be declared with modifier public and non-static
+            if (!$reflectionMethod->isPublic() || $reflectionMethod->isStatic()) {
+                continue;
+            }
 
             $description = '' !== $attributeBenchmark->description
                 ? $attributeBenchmark->description
@@ -76,14 +71,6 @@ abstract class DoBenchAbstract
         usort($this->benchmarkMethods, static function (BenchMethod $a, BenchMethod $b) {
             return $b->priority <=> $a->priority;
         });
-
-        array_unshift(
-            $this->benchmarkMethods,
-            new BenchMethod(
-                $this->buildContainerBenchmarkDescription,
-                new ReflectionMethod($this, 'buildContainer'),
-            )
-        );
     }
 
     final protected static function getFunctionMemory(callable $callback): TimeExecuteMemoryUseIteration
@@ -134,10 +121,5 @@ abstract class DoBenchAbstract
         }
 
         return $this->benchmarkResults;
-    }
-
-    final protected function buildContainer(): void
-    {
-        $this->container = $this->containerBuilder->build();
     }
 }
