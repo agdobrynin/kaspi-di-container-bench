@@ -58,8 +58,6 @@ final class BenchFindTaggedDefinitions extends DoBenchAbstract
                 sprintf('Tag "%s" not found.', $tag)
             );
         }
-
-        unset($definitions);
     }
 
     #[Benchmark(
