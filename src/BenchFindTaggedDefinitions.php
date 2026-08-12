@@ -26,7 +26,7 @@ final class BenchFindTaggedDefinitions extends DoBenchAbstract
     #[Benchmark(
         'Find tagged definitions with tag name "tags.name_bar"',
         priority: 101,
-        iterations: 10,
+        iterations: 100,
         beforeMethod: 'buildContainer'
     )]
     public function findTaggedDefinitionsViaAttribute(): void
@@ -64,7 +64,7 @@ final class BenchFindTaggedDefinitions extends DoBenchAbstract
 
     #[Benchmark(
         'Find via interface name "' . ServiceInterface::class . '"',
-        iterations: 10,
+        iterations: 100,
         beforeMethod: 'buildContainer'
     )]
     public function findTaggedDefinitionsViaInterfaceName(): void
