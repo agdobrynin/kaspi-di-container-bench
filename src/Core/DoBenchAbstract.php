@@ -79,14 +79,14 @@ abstract class DoBenchAbstract
 
     final protected static function runBenchmark(callable $callback): TimeExecuteMemoryUseIteration
     {
+        gc_collect_cycles();
+
         $startMemoryUsage = memory_get_usage();
         $startPeakUsage = memory_get_peak_usage();
         $startHrTime = hrtime(true);
 
         // Execute the target function
         $callback();
-
-        gc_collect_cycles();
 
         $endMemoryUsage = memory_get_usage();
         $endMemoryPeakUsage = memory_get_peak_usage();
