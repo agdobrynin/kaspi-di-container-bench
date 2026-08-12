@@ -58,21 +58,15 @@ final class BenchmarkResults
             $iterations = count($benchmarkResults);
 
             foreach ($benchmarkResults as $benchmarkResult) {
-                if ($srcMemoryAllocated < $benchmarkResult->memoryUsage()) {
-                    $srcMemoryAllocated = $benchmarkResult->memoryUsage();
-                }
-
-                if ($srcMemoryPeak < $benchmarkResult->memoryPeakUsage()) {
-                    $srcMemoryPeak = $benchmarkResult->memoryPeakUsage();
-                }
-
+                $srcMemoryAllocated += $benchmarkResult->memoryUsage();
+                $srcMemoryPeak += $benchmarkResult->memoryPeakUsage();
                 $srcTime += $benchmarkResult->HrTime();
             }
 
             $this->avgResults[$benchmarkDescription] = new TimeExecuteMemoryUseStatistic(
                 $srcMemoryAllocated,
                 $srcMemoryPeak,
-                ($srcTime / $iterations),
+                $srcTime,
                 $iterations,
             );
         }
