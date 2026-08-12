@@ -40,6 +40,8 @@ final class BenchFindTaggedDefinitions extends DoBenchAbstract
                 sprintf('Tag "%s" not found.', $this->tag1)
             );
         }
+
+        unset($definitions);
     }
 
     #[Benchmark(
@@ -57,6 +59,8 @@ final class BenchFindTaggedDefinitions extends DoBenchAbstract
                 sprintf('Tag "%s" not found.', $this->tag1)
             );
         }
+
+        unset($definitions);
     }
 
     #[Benchmark(
@@ -73,5 +77,7 @@ final class BenchFindTaggedDefinitions extends DoBenchAbstract
                 sprintf('Services implement "%s" not found.', $this->interfaceName)
             );
         }
+
+        unset($definitions);
     }
 }
