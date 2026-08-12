@@ -12,10 +12,10 @@ final class BenchmarkPrinter
     {
         print <<< TABLEHEAD
 
-+-----+-------+---------------------------------------------------+-----------------------+----------------+
-|     |       |                                                   |         Memory        |                |
-| No. | Iter. | Benchmark description                             +-----------+-----------+ Time execution |
-|     |       |                                                   | Allocated |   Peak    |                |
++-----+---------------------------------------------------+-------+-----------------------+----------------+
+|     |                                                   |       |         Memory        |                |
+| No. | Benchmark description                             | Iter. +-----------+-----------+ Time execution |
+|     |                                                   |       | Allocated |   Peak    |                |
 +-----+-------+---------------------------------------------------+-----------+-----------+----------------|
 
 TABLEHEAD;
@@ -35,7 +35,7 @@ TABLEHEAD;
             $peak = str_pad(Formatter::formatBytes($timeExecuteMemoryUseAvg->memoryPeakUsage, 4), 11, ' ', STR_PAD_BOTH);
             $time = str_pad(Formatter::formatTimeExecute($timeExecuteMemoryUseAvg->hrTime, 4), 16, ' ', STR_PAD_BOTH);
             print <<< ROW
-|$no|$iter|$prepare_description|$net|$peak|$time|
+|$no|$prepare_description|$iter|$net|$peak|$time|
 +-----+-----------------------------------------------------------+-----------+-----------+----------------+
 
 ROW;
