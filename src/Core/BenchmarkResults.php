@@ -54,18 +54,24 @@ final class BenchmarkResults
          * @var list<TimeExecuteMemoryUseIteration> $benchmarkResults
          */
         foreach ($this->results as $benchmarkDescription => $benchmarkResults) {
-            $srcNet = $srcPeak = $srcTime = 0;
+            $srcMemoryAllocated = $srcMemoryPeak = $srcTime = 0;
             $iterations = count($benchmarkResults);
 
             foreach ($benchmarkResults as $benchmarkResult) {
-                $srcNet += $benchmarkResult->memoryUsage();
-                $srcPeak += $benchmarkResult->memoryPeakUsage();
+                if ($srcMemoryAllocated < $benchmarkResult->memoryUsage()) {
+                    $srcMemoryAllocated = $benchmarkResult->memoryUsage();
+                }
+
+                if ($srcMemoryPeak < $benchmarkResult->memoryPeakUsage()) {
+                    $srcMemoryPeak = $benchmarkResult->memoryPeakUsage();
+                }
+
                 $srcTime += $benchmarkResult->HrTime();
             }
 
             $this->avgResults[$benchmarkDescription] = new TimeExecuteMemoryUseAverage(
-                ($srcNet / $iterations),
-                ($srcPeak / $iterations),
+                $srcMemoryAllocated,
+                $srcMemoryPeak,
                 ($srcTime / $iterations),
                 $iterations,
             );
