@@ -14,7 +14,7 @@ final class BenchmarkResults
     private array $results = [];
 
     /**
-     * @var array{non-empty-string, TimeExecuteMemoryUseAverage}
+     * @var array{non-empty-string, TimeExecuteMemoryUseStatistic}
      */
     private array $avgResults;
 
@@ -39,7 +39,7 @@ final class BenchmarkResults
     /**
      * A key of array benchmark description.
      *
-     * @return array<non-empty-string, TimeExecuteMemoryUseAverage>
+     * @return array<non-empty-string, TimeExecuteMemoryUseStatistic>
      */
     public function getAvgResults(): array
     {
@@ -69,7 +69,7 @@ final class BenchmarkResults
                 $srcTime += $benchmarkResult->HrTime();
             }
 
-            $this->avgResults[$benchmarkDescription] = new TimeExecuteMemoryUseAverage(
+            $this->avgResults[$benchmarkDescription] = new TimeExecuteMemoryUseStatistic(
                 $srcMemoryAllocated,
                 $srcMemoryPeak,
                 ($srcTime / $iterations),
