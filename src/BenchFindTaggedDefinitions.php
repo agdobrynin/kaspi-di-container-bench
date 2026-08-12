@@ -15,48 +15,47 @@ use function sprintf;
 final class BenchFindTaggedDefinitions extends DoBenchAbstract
 {
     private DiContainerInterface $container;
-    private string $tag1 = 'tags.name_bar';
-    private string $interfaceName = ServiceInterface::class;
 
     private function buildContainer(): void
     {
-        $this->container ??= (new DiContainerBuilder())
+        $this->container = (new DiContainerBuilder())
             ->import('Fixtures\\', __DIR__.'/../Fixtures')
             ->build();
     }
 
     #[Benchmark(
-        'First call for tag "tags.name_bar"',
+        'Find tagged definitions with tag name "tags.name_bar"',
         priority: 101,
         iterations: 10,
         beforeMethod: 'buildContainer'
     )]
-    public function firstCallFindTagName1(): void
+    public function findTaggedDefinitionsViaAttribute(): void
     {
-        $definitions = [...$this->container->findTaggedDefinitions($this->tag1)];
+        $tag = 'tags.name_bar';
 
-        if ($definitions === []) {
+        // first call
+        $found = false;
+
+        foreach ($this->container->findTaggedDefinitions($tag) as $def) {
+            $found = true;
+        }
+
+        if (false === $found) {
             throw new DomainException(
-                sprintf('Tag "%s" not found.', $this->tag1)
+                sprintf('Tag "%s" not found.', $tag)
             );
         }
 
-        unset($definitions);
-    }
+        // second call
+        $found = false;
 
-    #[Benchmark(
-        'Second call for tag "tags.name_bar"',
-        priority: 100,
-        iterations: 10,
-        beforeMethod: 'buildContainer'
-    )]
-    public function secondCallFindTagName1(): void
-    {
-        $definitions = [...$this->container->findTaggedDefinitions($this->tag1)];
+        foreach ($this->container->findTaggedDefinitions($tag) as $def) {
+            $found = true;
+        }
 
-        if ($definitions === []) {
+        if (false === $found) {
             throw new DomainException(
-                sprintf('Tag "%s" not found.', $this->tag1)
+                sprintf('Tag "%s" not found.', $tag)
             );
         }
 
@@ -68,16 +67,34 @@ final class BenchFindTaggedDefinitions extends DoBenchAbstract
         iterations: 10,
         beforeMethod: 'buildContainer'
     )]
-    public function firstCallFindTagAsInterfaceName(): void
+    public function findTaggedDefinitionsViaInterfaceName(): void
     {
-        $definitions = [...$this->container->findTaggedDefinitions($this->interfaceName)];
+        $interfaceName = ServiceInterface::class;
 
-        if ($definitions === []) {
+        // first call
+        $found = false;
+
+        foreach ($this->container->findTaggedDefinitions($interfaceName) as $def) {
+            $found = true;
+        }
+
+        if (false === $found) {
             throw new DomainException(
-                sprintf('Services implement "%s" not found.', $this->interfaceName)
+                sprintf('Services implement "%s" not found.', $interfaceName)
             );
         }
 
-        unset($definitions);
+        // second call
+        $found = false;
+
+        foreach ($this->container->findTaggedDefinitions($interfaceName) as $def) {
+            $found = true;
+        }
+
+        if (false === $found) {
+            throw new DomainException(
+                sprintf('Services implement "%s" not found.', $interfaceName)
+            );
+        }
     }
 }
