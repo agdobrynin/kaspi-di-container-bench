@@ -22,7 +22,10 @@ abstract class DoBenchAbstract
      */
     protected array $benchmarkMethods = [];
 
-    final public function __construct(protected readonly BenchmarkResults $benchmarkResults) {
+    final public function __construct(
+        protected readonly BenchmarkResults $benchmarkResults,
+        protected readonly bool $showProgressBar = true,
+    ) {
         gc_enable();
 
         // Find available methods
@@ -117,19 +120,33 @@ abstract class DoBenchAbstract
     final public function doBenchmarks(): BenchmarkResults
     {
         $this->benchmarkResults->reset();
+        /** @var string|null $benchmarkTitle */
+        $benchmarkTitle = null;
 
         foreach ($this->benchmarkMethods as $benchmarkMethod) {
             $benchmarkMethod->beforeReflectionMethod?->invoke($this);
 
-            print "\n";
-            $benchmarkTitle = sprintf('[%s] %s', $this->benchmarkResults->doBenchName, $benchmarkMethod->description);
+            if ($this->showProgressBar) {
+                print "\n";
+                $benchmarkTitle = sprintf('[%s] %s', $this->benchmarkResults->doBenchName, $benchmarkMethod->description);
+            }
+
 
             for ($i = 1; $i <= $benchmarkMethod->iterations; ++$i) {
-                Formatter::progressBar($benchmarkTitle, $i, $benchmarkMethod->iterations);
+                if (null !== $benchmarkTitle) {
+                    Formatter::progressBar($benchmarkTitle, $i, $benchmarkMethod->iterations);
+                }
+
                 $timeMemory = self::runBenchmark(fn() => $benchmarkMethod->reflectionMethod->invoke($this));
                 $this->benchmarkResults->attach($benchmarkMethod->description, $timeMemory);
             }
 
+            if ($this->showProgressBar) {
+                print "\n";
+            }
+        }
+
+        if ($this->showProgressBar) {
             print "\n";
         }
 
