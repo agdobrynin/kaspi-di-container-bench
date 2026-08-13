@@ -10,6 +10,9 @@
             "ContainerV45\\": "src",
             "Kaspi\\Benchmark\\": "../src",
             "Fixtures\\": "../Fixtures"
-        }
+        },
+        "files": [
+            "../Configuration.php"
+        ]
     }
 }
