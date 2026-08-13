@@ -12,6 +12,7 @@ use function gc_enable;
 use function hrtime;
 use function memory_get_peak_usage;
 use function memory_get_usage;
+use function sprintf;
 use function usort;
 
 abstract class DoBenchAbstract
@@ -120,10 +121,15 @@ abstract class DoBenchAbstract
         foreach ($this->benchmarkMethods as $benchmarkMethod) {
             $benchmarkMethod->beforeReflectionMethod?->invoke($this);
 
-            for ($i = 0; $i < $benchmarkMethod->iterations; ++$i) {
+            print "\n";
+
+            for ($i = 1; $i <= $benchmarkMethod->iterations; ++$i) {
+                Formatter::progressBar($benchmarkMethod->description, $i, $benchmarkMethod->iterations);
                 $timeMemory = self::runBenchmark(fn() => $benchmarkMethod->reflectionMethod->invoke($this));
                 $this->benchmarkResults->attach($benchmarkMethod->description, $timeMemory);
             }
+
+            print "\n";
         }
 
         return $this->benchmarkResults;
