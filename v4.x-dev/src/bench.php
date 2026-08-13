@@ -5,7 +5,7 @@ namespace ContainerV46Dev;
 
 use Kaspi\Benchmark\Core\BenchmarkPrinter;
 use Kaspi\Benchmark\Core\BenchmarkResults;
-use Kaspi\Benchmark\Core\BenchmarkResultsToFile;
+use Kaspi\Benchmark\Core\BenchmarkResultsFile;
 use Kaspi\Benchmark\BenchFindTaggedDefinitions;
 
 use function dirname;
@@ -18,7 +18,7 @@ $results = (new BenchFindTaggedDefinitions(new BenchmarkResults('v4.x-dev')))
 (new BenchmarkPrinter($results))
     ->print();
 
-(new BenchmarkResultsToFile(
+(new BenchmarkResultsFile(
     $results,
     dirname(__DIR__, 2) . '/var/results.json',
 ))
