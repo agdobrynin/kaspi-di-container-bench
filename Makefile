@@ -77,4 +77,14 @@ bench-in-docker:
 		$(docker-run) sh -c "php $$dir/src/index.php"; \
 	done
 
+.PHONY: bench-in-hosted
 bench-in-hosted: fixtures composer-prepare bench-in-hosted-only-bench
+
+.PHONY: h
+h: bench-in-hosted
+
+.PHONY: d
+d: bench-in-docker
+
+.PHONY: b
+b: bench-in-hosted-only-bench
