@@ -29,7 +29,7 @@ final class BenchmarkResults
     /**
      * A key of array benchmark description.
      *
-     * @return TimeExecuteMemoryUseIteration[]
+     * @return array{non-empty-string, list<TimeExecuteMemoryUseIteration>}
      */
     public function getResults(): array
     {
