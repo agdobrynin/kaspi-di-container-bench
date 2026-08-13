@@ -50,9 +50,9 @@ composer-prepare:
 
 .PHONY: bench-in-hosted-only-bench
 bench-in-hosted-only-bench:
-	$(bench-v4.5.x-cmd)
-	$(bench-v4.6.x-cmd)
-	$(if $(DEV), $(bench-v4.x-dev-cmd))
+	@$(bench-v4.5.x-cmd)
+	@$(bench-v4.6.x-cmd)
+	$(if $(DEV), @$(bench-v4.x-dev-cmd))
 
 .PHONY: bench-in-docker
 bench-in-docker:
