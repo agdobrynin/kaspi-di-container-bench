@@ -14,16 +14,16 @@ final class BenchmarkResults
     private array $results = [];
 
     /**
-     * @var array{non-empty-string, TimeExecuteMemoryUseStatistic}
+     * @var array{non-empty-string, TimeExecuteMemoryUsingSum}
      */
-    private array $timeExecuteMemoryUseStatisticItems;
+    private array $timeExecuteMemoryUsingSumItems;
 
     public function __construct(public readonly string $doBenchName) {}
 
     public function attach(string $benchmarkDescription, TimeExecuteMemoryUseIteration $result): void
     {
         $this->results[$benchmarkDescription][] = $result;
-        unset($this->timeExecuteMemoryUseStatisticItems);
+        unset($this->timeExecuteMemoryUsingSumItems);
     }
 
     /**
@@ -39,15 +39,15 @@ final class BenchmarkResults
     /**
      * A key of array benchmark description.
      *
-     * @return array<non-empty-string, TimeExecuteMemoryUseStatistic>
+     * @return array<non-empty-string, TimeExecuteMemoryUsingSum>
      */
-    public function getTimeExecuteMemoryUseStatisticItems(): array
+    public function getTimeExecuteMemoryUsingSumItems(): array
     {
-        if (isset($this->timeExecuteMemoryUseStatisticItems)) {
-            return $this->timeExecuteMemoryUseStatisticItems;
+        if (isset($this->timeExecuteMemoryUsingSumItems)) {
+            return $this->timeExecuteMemoryUsingSumItems;
         }
 
-        $this->timeExecuteMemoryUseStatisticItems = [];
+        $this->timeExecuteMemoryUsingSumItems = [];
 
         /**
          * @var non-empty-string $benchmarkDescription
@@ -63,7 +63,7 @@ final class BenchmarkResults
                 $srcTime += $benchmarkResult->HrTime();
             }
 
-            $this->timeExecuteMemoryUseStatisticItems[$benchmarkDescription] = new TimeExecuteMemoryUseStatistic(
+            $this->timeExecuteMemoryUsingSumItems[$benchmarkDescription] = new TimeExecuteMemoryUsingSum(
                 $srcMemoryAllocated,
                 $srcMemoryPeak,
                 $srcTime,
@@ -71,11 +71,11 @@ final class BenchmarkResults
             );
         }
 
-        return $this->timeExecuteMemoryUseStatisticItems;
+        return $this->timeExecuteMemoryUsingSumItems;
     }
 
     public function reset(): void
     {
-        unset($this->results, $this->timeExecuteMemoryUseStatisticItems);
+        unset($this->results, $this->timeExecuteMemoryUsingSumItems);
     }
 }
