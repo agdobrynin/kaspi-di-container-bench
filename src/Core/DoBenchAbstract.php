@@ -122,9 +122,10 @@ abstract class DoBenchAbstract
             $benchmarkMethod->beforeReflectionMethod?->invoke($this);
 
             print "\n";
+            $benchmarkTitle = sprintf('[%s] %s', $this->benchmarkResults->doBenchName, $benchmarkMethod->description);
 
             for ($i = 1; $i <= $benchmarkMethod->iterations; ++$i) {
-                Formatter::progressBar($benchmarkMethod->description, $i, $benchmarkMethod->iterations);
+                Formatter::progressBar($benchmarkTitle, $i, $benchmarkMethod->iterations);
                 $timeMemory = self::runBenchmark(fn() => $benchmarkMethod->reflectionMethod->invoke($this));
                 $this->benchmarkResults->attach($benchmarkMethod->description, $timeMemory);
             }
