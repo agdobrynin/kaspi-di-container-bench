@@ -6,23 +6,36 @@ namespace Kaspi\Benchmark\Core;
 
 final class BenchmarkPrinter
 {
-    public function __construct(private readonly BenchmarkResults $benchmarkResults) {}
-
-    public function print(): void
+    public function tableHeader(): string
     {
-        print <<< TABLEHEAD
+        $th = <<< TABLEHEAD
 
 +-----+---------------------------------------------------+-------+-----------------------+----------------+
 |     |                                                   |       |         Memory        |                |
 | No. | Benchmark description                             | Iter. +-----------+-----------+ Time execution |
 |     |                                                   |       | Allocated |   Peak    |                |
-+-----+-------+---------------------------------------------------+-----------+-----------+----------------|
-
 TABLEHEAD;
-        $timeExecuteMemoryUseingSumItems = $this->benchmarkResults->getTimeExecuteMemoryUsingSumItems();
+        return $th.$this->lineSeparator();
+    }
+
+    public function lineSeparator(): string
+    {
+        return <<< LINESE
+
++-----+-----------------------------------------------------------+-----------+-----------+----------------+
+LINESE;
+
+    }
+    public function __construct(private readonly BenchmarkResults $benchmarkResults) {}
+
+    public function print(): void
+    {
+        print $this->tableHeader();
+
+        $timeExecuteMemoryUsingSumItems = $this->benchmarkResults->getTimeExecuteMemoryUsingSumItems();
         $n = 1;
 
-        foreach ($timeExecuteMemoryUseingSumItems as $benchmarkDescription => $timeExecuteMemoryUsingSum) {
+        foreach ($timeExecuteMemoryUsingSumItems as $benchmarkDescription => $timeExecuteMemoryUsingSum) {
             $no = str_pad($n . '', 5, ' ', STR_PAD_BOTH);
             $iter = str_pad($timeExecuteMemoryUsingSum->iterations . '', 7, ' ', STR_PAD_BOTH);
 
@@ -35,10 +48,10 @@ TABLEHEAD;
             $peak = str_pad(Formatter::formatBytes($timeExecuteMemoryUsingSum->memoryPeakUsage, 4), 11, ' ', STR_PAD_BOTH);
             $time = str_pad(Formatter::formatTimeExecute($timeExecuteMemoryUsingSum->hrTime, 4), 16, ' ', STR_PAD_BOTH);
             print <<< ROW
-|$no|$prepare_description|$iter|$net|$peak|$time|
-+-----+-----------------------------------------------------------+-----------+-----------+----------------+
 
+|$no|$prepare_description|$iter|$net|$peak|$time|
 ROW;
+            print $this->lineSeparator();
             $n++;
         }
 
