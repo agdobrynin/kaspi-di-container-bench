@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Kaspi\Benchmark\Core;
 
+use Kaspi\Benchmark\Core\Attributes\Benchmark;
+use Kaspi\Benchmark\Core\Attributes\Iterations;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
 use function gc_collect_cycles;
 use function gc_enable;
 use function hrtime;
+use function is_int;
 use function memory_get_peak_usage;
 use function memory_get_usage;
 use function sprintf;
@@ -22,16 +25,21 @@ abstract class DoBenchAbstract
      */
     protected array $benchmarkMethods = [];
 
+    protected readonly ReflectionClass $reflectionClass;
+
     final public function __construct(
         protected readonly BenchmarkResults $benchmarkResults,
         protected readonly bool $showProgressBar = true,
     ) {
         gc_enable();
 
+        $this->reflectionClass = new ReflectionClass($this);
+
         // Find available methods
         /** @var array<non-empty-string, ReflectionMethod> $reflectionMethods */
         $reflectionMethods = [];
-        foreach ((new ReflectionClass($this))->getMethods()  as $reflectionMethod) {
+
+        foreach ($this->reflectionClass->getMethods()  as $reflectionMethod) {
             $reflectionMethods[$reflectionMethod->getName()] = $reflectionMethod;
 
         }
@@ -71,7 +79,7 @@ abstract class DoBenchAbstract
                 $description,
                 $reflectionMethod,
                 $attributeBenchmark->priority,
-                $attributeBenchmark->iterations,
+                $this->configureIterationMethod($attributeBenchmark),
                 $beforeReflectionMethod,
             );
         }
@@ -151,5 +159,30 @@ abstract class DoBenchAbstract
         }
 
         return $this->benchmarkResults;
+    }
+
+    final protected function configureIterationMethod(Benchmark $attributeBenchmark): int
+    {
+        if (is_int($attributeBenchmark->iterations)
+            && 0 < $attributeBenchmark->iterations) {
+            return $attributeBenchmark->iterations;
+        }
+
+        if ($attributeBenchmark->iterations instanceof Iterations
+            && 0 < $attributeBenchmark->iterations->iterations) {
+            return $attributeBenchmark->iterations->iterations;
+        }
+
+        $iterationsAttribute = $this->reflectionClass->getAttributes(Iterations::class)[0] ?? null;
+
+        if (null !== $iterationsAttribute) {
+            /** @var Iterations $iterations */
+            $iterations = $iterationsAttribute->newInstance();
+            return $iterations->iterations > 0
+                ? $iterations->iterations
+                : 1;
+        }
+
+        return 1;
     }
 }

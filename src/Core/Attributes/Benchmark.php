@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kaspi\Benchmark\Core;
+namespace Kaspi\Benchmark\Core\Attributes;
 
 use Attribute;
 
@@ -12,7 +12,7 @@ final class Benchmark
     public function __construct(
         public readonly string $description = '',
         public readonly int $priority = 0,
-        public readonly int $iterations = 1,
+        public readonly null|int|Iterations $iterations = null,
         public readonly ?string $beforeMethod = null,
     ) {}
 }
