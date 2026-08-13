@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace ContainerV45;
+namespace ContainerV46;
 
 use Kaspi\Benchmark\Core\BenchmarkPrinter;
 use Kaspi\Benchmark\Core\BenchmarkResults;
@@ -12,7 +12,7 @@ use function dirname;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$results = (new BenchFindTaggedDefinitions(new BenchmarkResults('v4.5.0')))
+$results = (new BenchFindTaggedDefinitions(new BenchmarkResults('v4.6.x')))
     ->doBenchmarks();
 
 (new BenchmarkPrinter($results))
