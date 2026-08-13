@@ -50,7 +50,7 @@ clean-vendor:
 clean-all: clean-var-dir clean-fixtures clean-vendor
 
 .PHONY: composer-prepare
-composer-install-cmd := composer i --no-dev -n
+composer-install-cmd := composer i --no-dev -n -o -a
 
 # --working-dir
 composer-prepare:
