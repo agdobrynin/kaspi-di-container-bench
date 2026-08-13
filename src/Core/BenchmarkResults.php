@@ -16,14 +16,14 @@ final class BenchmarkResults
     /**
      * @var array{non-empty-string, TimeExecuteMemoryUseStatistic}
      */
-    private array $avgResults;
+    private array $timeExecuteMemoryUseStatisticItems;
 
     public function __construct(public readonly string $doBenchName) {}
 
     public function attach(string $benchmarkDescription, TimeExecuteMemoryUseIteration $result): void
     {
         $this->results[$benchmarkDescription][] = $result;
-        unset($this->avgResults);
+        unset($this->timeExecuteMemoryUseStatisticItems);
     }
 
     /**
@@ -41,13 +41,13 @@ final class BenchmarkResults
      *
      * @return array<non-empty-string, TimeExecuteMemoryUseStatistic>
      */
-    public function getAvgResults(): array
+    public function getTimeExecuteMemoryUseStatisticItems(): array
     {
-        if (isset($this->avgResults)) {
-            return $this->avgResults;
+        if (isset($this->timeExecuteMemoryUseStatisticItems)) {
+            return $this->timeExecuteMemoryUseStatisticItems;
         }
 
-        $this->avgResults = [];
+        $this->timeExecuteMemoryUseStatisticItems = [];
 
         /**
          * @var non-empty-string $benchmarkDescription
@@ -63,7 +63,7 @@ final class BenchmarkResults
                 $srcTime += $benchmarkResult->HrTime();
             }
 
-            $this->avgResults[$benchmarkDescription] = new TimeExecuteMemoryUseStatistic(
+            $this->timeExecuteMemoryUseStatisticItems[$benchmarkDescription] = new TimeExecuteMemoryUseStatistic(
                 $srcMemoryAllocated,
                 $srcMemoryPeak,
                 $srcTime,
@@ -71,11 +71,11 @@ final class BenchmarkResults
             );
         }
 
-        return $this->avgResults;
+        return $this->timeExecuteMemoryUseStatisticItems;
     }
 
     public function reset(): void
     {
-        unset($this->results, $this->avgResults);
+        unset($this->results, $this->timeExecuteMemoryUseStatisticItems);
     }
 }
