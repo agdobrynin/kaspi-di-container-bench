@@ -52,35 +52,4 @@ final class BenchmarkResultsFile
 
         return $this;
     }
-
-    public function read(): self
-    {
-        if (!file_exists($this->outputFile)) {
-            $this->benchmarkResults->reset();
-        }
-
-        $content = file_get_contents($this->outputFile);
-
-        try {
-            $results = json_decode($content, true, flags: JSON_THROW_ON_ERROR);
-        } catch (JsonException) {
-            $this->benchmarkResults->reset();
-
-            return $this;
-        }
-
-        if (!isset($results[$this->benchmarkResults->doBenchName]['benchmarks'])) {
-            $this->benchmarkResults->reset();
-
-            return $this;
-        }
-
-        foreach ($results[$this->benchmarkResults->doBenchName]['benchmarks'] as $description => $timeMemoryUseIterations) {
-            foreach ($timeMemoryUseIterations as $timeMemoryUseIteration) {
-                $this->benchmarkResults->attach($description, new TimeExecuteMemoryUseIteration(...$timeMemoryUseIteration));
-            }
-        }
-
-        return $this;
-    }
 }
