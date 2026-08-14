@@ -13,6 +13,6 @@ final class BenchMethod
         public readonly ReflectionMethod $reflectionMethod,
         public readonly int $priority = 0,
         public readonly int $iterations = 1,
-        public readonly ?ReflectionMethod $beforeReflectionMethod = null,
+        public readonly false|ReflectionMethod $beforeReflectionMethod = false,
     ) {}
 }

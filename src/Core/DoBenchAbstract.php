@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kaspi\Benchmark\Core;
 
+use Kaspi\Benchmark\Core\Attributes\BeforeMethod;
 use Kaspi\Benchmark\Core\Attributes\Benchmark;
 use Kaspi\Benchmark\Core\Attributes\Iterations;
 use ReflectionClass;
@@ -13,6 +14,7 @@ use function gc_collect_cycles;
 use function gc_enable;
 use function hrtime;
 use function is_int;
+use function is_string;
 use function memory_get_peak_usage;
 use function memory_get_usage;
 use function sprintf;
@@ -27,6 +29,15 @@ abstract class DoBenchAbstract
 
     protected readonly ReflectionClass $reflectionClass;
 
+    /**
+     * @var array<non-empty-string, ReflectionMethod>
+     */
+    protected readonly array $reflectionMethods;
+
+    protected readonly int $iterationsOnClass;
+
+    protected readonly false|ReflectionMethod $beforeMethodOnClass;
+
     final public function __construct(
         protected readonly BenchmarkResults $benchmarkResults,
         protected readonly bool $showProgressBar = true,
@@ -36,15 +47,20 @@ abstract class DoBenchAbstract
         $this->reflectionClass = new ReflectionClass($this);
 
         // Find available methods
-        /** @var array<non-empty-string, ReflectionMethod> $reflectionMethods */
         $reflectionMethods = [];
 
         foreach ($this->reflectionClass->getMethods()  as $reflectionMethod) {
             $reflectionMethods[$reflectionMethod->getName()] = $reflectionMethod;
-
         }
 
-        foreach ($reflectionMethods as $methodName => $reflectionMethod) {
+        $this->reflectionMethods = $reflectionMethods;
+
+        foreach ($this->reflectionMethods as $methodName => $reflectionMethod) {
+            // Benchmark method must be declared with modifier public and non-static
+            if (!$reflectionMethod->isPublic() || $reflectionMethod->isStatic()) {
+                continue;
+            }
+
             $attribute = $reflectionMethod->getAttributes(Benchmark::class)[0] ?? null;
 
             if (null === $attribute) {
@@ -53,34 +69,16 @@ abstract class DoBenchAbstract
 
             /** @var Benchmark $attributeBenchmark */
             $attributeBenchmark = $attribute->newInstance();
-
-            // Benchmark method must be declared with modifier public and non-static
-            if (!$reflectionMethod->isPublic() || $reflectionMethod->isStatic()) {
-                continue;
-            }
-
             $description = '' !== $attributeBenchmark->description
                 ? $attributeBenchmark->description
                 : self::methodToHuman($methodName);
-
-            $beforeReflectionMethod = null;
-
-            if (null !== $attributeBenchmark->beforeMethod) {
-                if (!isset($reflectionMethods[$attributeBenchmark->beforeMethod])) {
-                    throw new \InvalidArgumentException(
-                        sprintf('The attribute `%s` failed validation for the method `%s::%s()`. The value of the `$beforeMethod` parameter must refer to a public class method. Got value "%s".', Benchmark::class, $this::class, $methodName, $attributeBenchmark->beforeMethod)
-                    );
-                }
-
-                $beforeReflectionMethod = $reflectionMethods[$attributeBenchmark->beforeMethod];
-            }
 
             $this->benchmarkMethods[] = new BenchMethod(
                 $description,
                 $reflectionMethod,
                 $attributeBenchmark->priority,
                 $this->configureIterationMethod($attributeBenchmark),
-                $beforeReflectionMethod,
+                $this->configureBeforeMethod($attributeBenchmark, $reflectionMethod),
             );
         }
 
@@ -132,7 +130,9 @@ abstract class DoBenchAbstract
         $benchmarkTitle = null;
 
         foreach ($this->benchmarkMethods as $benchmarkMethod) {
-            $benchmarkMethod->beforeReflectionMethod?->invoke($this);
+            if ($benchmarkMethod->beforeReflectionMethod instanceof ReflectionMethod) {
+                $benchmarkMethod->beforeReflectionMethod->invoke($this);
+            }
 
             if ($this->showProgressBar) {
                 print "\n";
@@ -161,28 +161,81 @@ abstract class DoBenchAbstract
         return $this->benchmarkResults;
     }
 
+    final protected function checkAvailableMethod(string $method, string $classAttribute, ReflectionClass|ReflectionMethod $on): ReflectionMethod
+    {
+        if (!isset($this->reflectionMethods[$method])) {
+            $onName = $on instanceof ReflectionClass
+                ? $on->getName().'::class'
+                : $on->getDeclaringClass()->getName().'::'.$on->getName().'()';
+            throw new \InvalidArgumentException(
+                sprintf('The attribute `%s` failed validation for the `%s`. The value of the `$beforeMethod` parameter must refer to a public class method. Got value "%s".', $classAttribute, $onName, $method)
+            );
+        }
+
+        return $this->reflectionMethods[$method];
+    }
+
     final protected function configureIterationMethod(Benchmark $attributeBenchmark): int
     {
-        if (is_int($attributeBenchmark->iterations)
-            && 0 < $attributeBenchmark->iterations) {
+        if (is_int($attributeBenchmark->iterations)) {
             return $attributeBenchmark->iterations;
         }
 
-        if ($attributeBenchmark->iterations instanceof Iterations
-            && 0 < $attributeBenchmark->iterations->iterations) {
+        if ($attributeBenchmark->iterations instanceof Iterations) {
             return $attributeBenchmark->iterations->iterations;
         }
 
-        $iterationsAttribute = $this->reflectionClass->getAttributes(Iterations::class)[0] ?? null;
-
-        if (null !== $iterationsAttribute) {
-            /** @var Iterations $iterations */
-            $iterations = $iterationsAttribute->newInstance();
-            return $iterations->iterations > 0
-                ? $iterations->iterations
-                : 1;
+        if (isset($this->iterationsOnClass)) {
+            return $this->iterationsOnClass;
         }
 
-        return 1;
+        /** @var Iterations|null $iterationsAttributeOnClass */
+        $iterationsAttributeOnClass = isset($this->reflectionClass->getAttributes(Iterations::class)[0])
+            ? $this->reflectionClass->getAttributes(Iterations::class)[0]->newInstance()
+            : null;
+
+        if ($iterationsAttributeOnClass instanceof Iterations) {
+            return $this->iterationsOnClass = $iterationsAttributeOnClass->iterations;
+        }
+
+        return $this->iterationsOnClass = 1;
+    }
+
+    final protected function configureBeforeMethod(Benchmark $attributeBenchmark, ReflectionMethod $reflectionMethod): false|ReflectionMethod
+    {
+        if (is_string($attributeBenchmark->beforeMethod)) {
+            return $this->checkAvailableMethod(
+                $attributeBenchmark->beforeMethod,
+                $attributeBenchmark::class,
+                $reflectionMethod
+            );
+        }
+
+        if ($attributeBenchmark->beforeMethod instanceof BeforeMethod) {
+            return $this->checkAvailableMethod(
+                $attributeBenchmark->beforeMethod->beforeMethod,
+                $attributeBenchmark::class,
+                $reflectionMethod,
+            );
+        }
+
+        if (isset($this->beforeMethodOnClass)) {
+            return $this->beforeMethodOnClass;
+        }
+
+        /** @var BeforeMethod|null $beforeMethodOnClass */
+        $beforeMethodOnClass = isset($this->reflectionClass->getAttributes(BeforeMethod::class)[0])
+            ? $this->reflectionClass->getAttributes(BeforeMethod::class)[0]->newInstance()
+            : null;
+
+        if ($beforeMethodOnClass instanceof BeforeMethod) {
+            return $this->beforeMethodOnClass = $this->checkAvailableMethod(
+                $beforeMethodOnClass->beforeMethod,
+                $beforeMethodOnClass::class,
+                $this->reflectionClass,
+            );
+        }
+
+        return $this->beforeMethodOnClass = false;
     }
 }

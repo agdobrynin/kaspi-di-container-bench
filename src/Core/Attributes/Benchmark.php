@@ -12,7 +12,7 @@ final class Benchmark
     public function __construct(
         public readonly string $description = '',
         public readonly int $priority = 0,
-        public readonly null|int|Iterations $iterations = null,
-        public readonly ?string $beforeMethod = null,
+        public readonly false|int|Iterations $iterations = false,
+        public readonly false|string|BeforeMethod $beforeMethod = false,
     ) {}
 }
