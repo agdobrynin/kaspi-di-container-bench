@@ -91,7 +91,7 @@ abstract class DoBenchAbstract
         });
     }
 
-    final protected static function runBenchmark(callable $callback): TimeExecuteMemoryUseIteration
+    final protected static function runBenchmark(callable $callback): TimeExecuteMemoryUsageIteration
     {
         gc_collect_cycles();
 
@@ -106,7 +106,7 @@ abstract class DoBenchAbstract
         $endMemoryPeakUsage = memory_get_peak_usage();
         $endHrTime = hrtime(true);
 
-        return new TimeExecuteMemoryUseIteration(
+        return new TimeExecuteMemoryUsageIteration(
             $startMemoryUsage,
             $endMemoryUsage,
             $startPeakUsage,
@@ -140,7 +140,7 @@ abstract class DoBenchAbstract
 
             if ($this->showProgressBar) {
                 print "\n";
-                $benchmarkTitle = sprintf('[%s] %s', $this->benchmarkResults->doBenchName, $benchmarkMethod->description);
+                $benchmarkTitle = sprintf('[%s] %s', $this->benchmarkResults->groupName, $benchmarkMethod->description);
             }
 
 

@@ -9,7 +9,7 @@ use function count;
 final class BenchmarkResults
 {
     /**
-     * @var array{non-empty-string, list<TimeExecuteMemoryUseIteration>}
+     * @var array{non-empty-string, list<TimeExecuteMemoryUsageIteration>}
      */
     private array $results = [];
 
@@ -18,18 +18,34 @@ final class BenchmarkResults
      */
     private array $timeExecuteMemoryUsingSumItems;
 
-    public function __construct(public readonly string $doBenchName) {}
+    /**
+     * @param non-empty-string $groupName
+     */
+    public function __construct(public readonly string $groupName) {}
 
-    public function attach(string $benchmarkDescription, TimeExecuteMemoryUseIteration $result): void
+    /**
+     * @param non-empty-string $benchmarkDescription
+     */
+    public function attach(string $benchmarkDescription, TimeExecuteMemoryUsageIteration $result): void
     {
         $this->results[$benchmarkDescription][] = $result;
         unset($this->timeExecuteMemoryUsingSumItems);
     }
 
     /**
+     * @param non-empty-string                      $benchmarkDescription
+     * @param list<TimeExecuteMemoryUsageIteration> $results
+     */
+    public function attachResults(string $benchmarkDescription, array $results): void
+    {
+        $this->results[$benchmarkDescription] = $results;
+        unset($this->timeExecuteMemoryUsingSumItems);
+    }
+
+    /**
      * A key of array benchmark description.
      *
-     * @return array{non-empty-string, list<TimeExecuteMemoryUseIteration>}
+     * @return array{non-empty-string, list<TimeExecuteMemoryUsageIteration>}
      */
     public function getResults(): array
     {
@@ -51,7 +67,7 @@ final class BenchmarkResults
 
         /**
          * @var non-empty-string $benchmarkDescription
-         * @var list<TimeExecuteMemoryUseIteration> $benchmarkResults
+         * @var list<TimeExecuteMemoryUsageIteration> $benchmarkResults
          */
         foreach ($this->results as $benchmarkDescription => $benchmarkResults) {
             $srcMemoryAllocated = $srcMemoryPeak = $srcTime = 0;

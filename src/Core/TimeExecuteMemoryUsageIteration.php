@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Kaspi\Benchmark\Core;
 
-final class TimeExecuteMemoryUseIteration
+final class TimeExecuteMemoryUsageIteration
 {
     public function __construct(
         public readonly int $startMemoryUsage,

@@ -16,5 +16,6 @@ $results = (new BenchFindTaggedDefinitions(
 ))
     ->doBenchmarks();
 
-(new BenchmarkResultsFile($results, Configuration::JsonFileResult->getValue()))
+(new BenchmarkResultsFile(Configuration::JsonFileResult->getValue()))
+    ->attach($results)
     ->save();
