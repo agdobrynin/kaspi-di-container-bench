@@ -6,6 +6,7 @@ namespace Kaspi\Benchmark;
 
 use DomainException;
 use Fixtures\Services\Interfaces\ServiceInterface;
+use Kaspi\Benchmark\Core\Attributes\AfterMethod;
 use Kaspi\Benchmark\Core\Attributes\BeforeMethod;
 use Kaspi\Benchmark\Core\Attributes\Benchmark;
 use Kaspi\Benchmark\Core\Attributes\Iterations;
@@ -16,6 +17,7 @@ use function sprintf;
 
 #[Iterations(100)]
 #[BeforeMethod('buildContainer')]
+#[AfterMethod('unsetContainer')]
 final class BenchFindTaggedDefinitions extends DoBenchAbstract
 {
     private DiContainerInterface $container;
@@ -25,6 +27,11 @@ final class BenchFindTaggedDefinitions extends DoBenchAbstract
         $this->container = (new DiContainerBuilder())
             ->import('Fixtures\\', __DIR__.'/../Fixtures')
             ->build();
+    }
+
+    private function unsetContainer(): void
+    {
+        unset($this->container);
     }
 
     #[Benchmark(
