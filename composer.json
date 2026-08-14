@@ -5,6 +5,9 @@
     "autoload": {
         "psr-4": {
             "Kaspi\\Benchmark\\": "src"
-        }
+        },
+        "files" : [
+            "Configuration.php"
+        ]
     }
 }

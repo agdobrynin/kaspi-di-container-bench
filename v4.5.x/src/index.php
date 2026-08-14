@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace ContainerV45;
 
-use Kaspi\Benchmark\Configuration;
+use Kaspi\Benchmark\Config\Configuration;
 use Kaspi\Benchmark\Core\BenchmarkResults;
 use Kaspi\Benchmark\Core\BenchmarkResultsFile;
 use Kaspi\Benchmark\BenchFindTaggedDefinitions;

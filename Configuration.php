@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Kaspi\Benchmark;
+namespace Kaspi\Benchmark\Config;
 
 enum Configuration
 {
