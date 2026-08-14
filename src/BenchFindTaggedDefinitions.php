@@ -6,6 +6,7 @@ namespace Kaspi\Benchmark;
 
 use DomainException;
 use Fixtures\Services\Interfaces\ServiceInterface;
+use Kaspi\Benchmark\Core\Attributes\BeforeMethod;
 use Kaspi\Benchmark\Core\Attributes\Benchmark;
 use Kaspi\Benchmark\Core\Attributes\Iterations;
 use Kaspi\Benchmark\Core\DoBenchAbstract;
@@ -14,6 +15,7 @@ use Kaspi\DiContainer\Interfaces\DiContainerInterface;
 use function sprintf;
 
 #[Iterations(100)]
+#[BeforeMethod('buildContainer')]
 final class BenchFindTaggedDefinitions extends DoBenchAbstract
 {
     private DiContainerInterface $container;
@@ -28,7 +30,6 @@ final class BenchFindTaggedDefinitions extends DoBenchAbstract
     #[Benchmark(
         'Find tagged definitions with tag name "tags.name_bar"',
         priority: 101,
-        beforeMethod: 'buildContainer'
     )]
     public function findTaggedDefinitionsViaAttribute(): void
     {
@@ -61,10 +62,7 @@ final class BenchFindTaggedDefinitions extends DoBenchAbstract
         }
     }
 
-    #[Benchmark(
-        'Find via interface name "' . ServiceInterface::class . '"',
-        beforeMethod: 'buildContainer'
-    )]
+    #[Benchmark('Find via interface name "' . ServiceInterface::class . '"')]
     public function findTaggedDefinitionsViaInterfaceName(): void
     {
         $interfaceName = ServiceInterface::class;
