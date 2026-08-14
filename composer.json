@@ -1,6 +1,6 @@
 {
     "config": {
-        "optimize-autoloader": true
+        "classmap-authoritative": true
     },
     "autoload": {
         "psr-4": {

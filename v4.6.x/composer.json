@@ -3,7 +3,7 @@
         "kaspi/di-container": "4.6.*"
     },
     "config": {
-        "optimize-autoloader": true
+        "classmap-authoritative": true
     },
     "autoload": {
         "psr-4": {
