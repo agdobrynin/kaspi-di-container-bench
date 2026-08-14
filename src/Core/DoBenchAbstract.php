@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kaspi\Benchmark\Core;
 
+use Kaspi\Benchmark\Core\Attributes\AfterMethod;
 use Kaspi\Benchmark\Core\Attributes\BeforeMethod;
 use Kaspi\Benchmark\Core\Attributes\Benchmark;
 use Kaspi\Benchmark\Core\Attributes\Iterations;
@@ -37,6 +38,8 @@ abstract class DoBenchAbstract
     protected readonly int $iterationsOnClass;
 
     protected readonly false|ReflectionMethod $beforeMethodOnClass;
+
+    protected readonly false|ReflectionMethod $afterMethodOnClass;
 
     final public function __construct(
         protected readonly BenchmarkResults $benchmarkResults,
@@ -79,6 +82,7 @@ abstract class DoBenchAbstract
                 $attributeBenchmark->priority,
                 $this->configureIterationMethod($attributeBenchmark),
                 $this->configureBeforeMethod($attributeBenchmark, $reflectionMethod),
+                $this->configureAfterMethod($attributeBenchmark, $reflectionMethod),
             );
         }
 
@@ -152,6 +156,10 @@ abstract class DoBenchAbstract
             if ($this->showProgressBar) {
                 print "\n";
             }
+
+            if ($benchmarkMethod->afterReflectionMethod instanceof ReflectionMethod) {
+                $benchmarkMethod->afterReflectionMethod->invoke($this);
+            }
         }
 
         if ($this->showProgressBar) {
@@ -161,14 +169,14 @@ abstract class DoBenchAbstract
         return $this->benchmarkResults;
     }
 
-    final protected function checkAvailableMethod(string $method, string $classAttribute, ReflectionClass|ReflectionMethod $on): ReflectionMethod
+    final protected function checkAvailableMethod(string $method, string $classAttribute, string $parameterName, ReflectionClass|ReflectionMethod $on): ReflectionMethod
     {
         if (!isset($this->reflectionMethods[$method])) {
             $onName = $on instanceof ReflectionClass
                 ? $on->getName().'::class'
                 : $on->getDeclaringClass()->getName().'::'.$on->getName().'()';
             throw new \InvalidArgumentException(
-                sprintf('The attribute `%s` failed validation for the `%s`. The value of the `$beforeMethod` parameter must refer to a public class method. Got value "%s".', $classAttribute, $onName, $method)
+                sprintf('The attribute `%s` failed validation for the `%s`. The value of the `$%s` parameter must refer to a public class method. Got value "%s".', $classAttribute, $onName, $parameterName, $method)
             );
         }
 
@@ -207,6 +215,7 @@ abstract class DoBenchAbstract
             return $this->checkAvailableMethod(
                 $attributeBenchmark->beforeMethod,
                 $attributeBenchmark::class,
+                'beforeMethod',
                 $reflectionMethod
             );
         }
@@ -215,6 +224,7 @@ abstract class DoBenchAbstract
             return $this->checkAvailableMethod(
                 $attributeBenchmark->beforeMethod->beforeMethod,
                 $attributeBenchmark::class,
+                'beforeMethod',
                 $reflectionMethod,
             );
         }
@@ -232,10 +242,52 @@ abstract class DoBenchAbstract
             return $this->beforeMethodOnClass = $this->checkAvailableMethod(
                 $beforeMethodOnClass->beforeMethod,
                 $beforeMethodOnClass::class,
+                'beforeMethod',
                 $this->reflectionClass,
             );
         }
 
         return $this->beforeMethodOnClass = false;
+    }
+
+    final protected function configureAfterMethod(Benchmark $attributeBenchmark, ReflectionMethod $reflectionMethod): false|ReflectionMethod
+    {
+        if (is_string($attributeBenchmark->afterMethod)) {
+            return $this->checkAvailableMethod(
+                $attributeBenchmark->afterMethod,
+                $attributeBenchmark::class,
+                'afterMethod',
+                $reflectionMethod,
+            );
+        }
+
+        if ($attributeBenchmark->afterMethod instanceof AfterMethod) {
+            return $this->checkAvailableMethod(
+                $attributeBenchmark->afterMethod->afterMethod,
+                $attributeBenchmark::class,
+                'afterMethod',
+                $reflectionMethod,
+            );
+        }
+
+        if (isset($this->afterMethodOnClass)) {
+            return $this->afterMethodOnClass;
+        }
+
+        /** @var AfterMethod|null $beforeMethodOnClass */
+        $afterMethodOnClass = isset($this->reflectionClass->getAttributes(AfterMethod::class)[0])
+            ? $this->reflectionClass->getAttributes(AfterMethod::class)[0]->newInstance()
+            : null;
+
+        if ($afterMethodOnClass instanceof AfterMethod) {
+            return $this->afterMethodOnClass = $this->checkAvailableMethod(
+                $afterMethodOnClass->afterMethod,
+                $afterMethodOnClass::class,
+                'afterMethod',
+                $this->reflectionClass,
+            );
+        }
+
+        return $this->afterMethodOnClass = false;
     }
 }

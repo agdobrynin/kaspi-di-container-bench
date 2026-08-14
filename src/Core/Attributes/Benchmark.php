@@ -14,5 +14,6 @@ final class Benchmark
         public readonly int $priority = 0,
         public readonly false|int|Iterations $iterations = false,
         public readonly false|string|BeforeMethod $beforeMethod = false,
+        public readonly false|string|AfterMethod $afterMethod = false,
     ) {}
 }

@@ -14,5 +14,6 @@ final class BenchMethod
         public readonly int $priority = 0,
         public readonly int $iterations = 1,
         public readonly false|ReflectionMethod $beforeReflectionMethod = false,
+        public readonly false|ReflectionMethod $afterReflectionMethod = false,
     ) {}
 }
