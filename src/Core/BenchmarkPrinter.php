@@ -4,8 +4,27 @@ declare(strict_types=1);
 
 namespace Kaspi\Benchmark\Core;
 
+use function str_pad;
+use const STR_PAD_BOTH;
+
 final class BenchmarkPrinter
 {
+    /**
+     * @var list<BenchmarkResults>
+     */
+    private readonly array $benchmarkResultsCollection;
+    public function attach(BenchmarkResults $benchmarkResults): self
+    {
+        $this->benchmarkResultsCollection[] = $benchmarkResults;
+
+        return $this;
+    }
+
+    public function reset(): void
+    {
+        unset($this->benchmarkResultsCollection);
+    }
+
     public function tableHeader(): string
     {
         $th = <<< TABLEHEAD
@@ -15,10 +34,11 @@ final class BenchmarkPrinter
 | No. | Benchmark description                             | Iter. +-----------+-----------+ Time execution |
 |     |                                                   |       | Allocated |   Peak    |                |
 TABLEHEAD;
-        return $th.$this->lineSeparator();
+
+        return $th.$this->tableLineSeparator();
     }
 
-    public function lineSeparator(): string
+    public function tableLineSeparator(): string
     {
         return <<< LINESE
 
@@ -26,33 +46,48 @@ TABLEHEAD;
 LINESE;
 
     }
-    public function __construct(private readonly BenchmarkResults $benchmarkResults) {}
 
     public function print(): void
     {
+        if (!isset($this->benchmarkResultsCollection)) {
+            print "Benchmark results collection is empty.\n";
+
+            return;
+        }
+
         print $this->tableHeader();
 
-        $timeExecuteMemoryUsingSumItems = $this->benchmarkResults->getTimeExecuteMemoryUsingSumItems();
-        $n = 1;
+        foreach ($this->benchmarkResultsCollection as $benchmarkResult) {
+            $benchmarkGroup = str_pad($benchmarkResult->groupName, 108, ' ', STR_PAD_BOTH);
+            print <<< BENCHMARK_GRPUP
+|$benchmarkGroup|
+BENCHMARK_GRPUP;
 
-        foreach ($timeExecuteMemoryUsingSumItems as $benchmarkDescription => $timeExecuteMemoryUsingSum) {
-            $no = str_pad($n . '', 5, ' ', STR_PAD_BOTH);
-            $iter = str_pad($timeExecuteMemoryUsingSum->iterations . '', 7, ' ', STR_PAD_BOTH);
+            print $this->tableLineSeparator();
 
-            $description_cut = \strlen($benchmarkDescription) > 50 ?
-                substr($benchmarkDescription, 0, 47) . '...'
-                : $benchmarkDescription;
-            $prepare_description = ' ' . str_pad($description_cut, 50);
+            $timeExecuteMemoryUsingSumItems =  $benchmarkResult->getTimeExecuteMemoryUsingSumItems();
 
-            $net = str_pad(Formatter::formatBytes($timeExecuteMemoryUsingSum->memoryUsageUsage, 4), 11, ' ', STR_PAD_BOTH);
-            $peak = str_pad(Formatter::formatBytes($timeExecuteMemoryUsingSum->memoryPeakUsage, 4), 11, ' ', STR_PAD_BOTH);
-            $time = str_pad(Formatter::formatTimeExecute($timeExecuteMemoryUsingSum->hrTime, 4), 16, ' ', STR_PAD_BOTH);
-            print <<< ROW
+            $n = 1;
+
+            foreach ($timeExecuteMemoryUsingSumItems as $benchmarkDescription => $timeExecuteMemoryUsingSum) {
+                $no = str_pad($n . '', 5, ' ', STR_PAD_BOTH);
+                $iter = str_pad($timeExecuteMemoryUsingSum->iterations . '', 7, ' ', STR_PAD_BOTH);
+
+                $description_cut = \strlen($benchmarkDescription) > 50 ?
+                    substr($benchmarkDescription, 0, 47) . '...'
+                    : $benchmarkDescription;
+                $prepare_description = ' ' . str_pad($description_cut, 50);
+
+                $net = str_pad(Formatter::formatBytes($timeExecuteMemoryUsingSum->memoryUsageUsage, 4), 11, ' ', STR_PAD_BOTH);
+                $peak = str_pad(Formatter::formatBytes($timeExecuteMemoryUsingSum->memoryPeakUsage, 4), 11, ' ', STR_PAD_BOTH);
+                $time = str_pad(Formatter::formatTimeExecute($timeExecuteMemoryUsingSum->hrTime, 4), 16, ' ', STR_PAD_BOTH);
+                print <<< ROW
 
 |$no|$prepare_description|$iter|$net|$peak|$time|
 ROW;
-            print $this->lineSeparator();
-            $n++;
+                print $this->tableLineSeparator();
+                $n++;
+            }
         }
 
         print "\n";
