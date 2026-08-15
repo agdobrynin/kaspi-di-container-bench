@@ -45,22 +45,24 @@ final class BenchmarkResultsFile
     public function save(): self
     {
         if (!isset($this->attachedBenchmarkResults)) {
+            file_put_contents($this->outputFile, '{}');
+
             return $this;
         }
 
-        $results = [];
-        $this->getArrayFromJson($results);
+        $fileResults = [];
+        $this->getArrayFromJson($fileResults);
 
         foreach ($this->attachedBenchmarkResults as $benchmarkResults) {
             foreach ($benchmarkResults->getResults() as $benchmarkDescription => $timeExecuteMemoryUseIterations) {
-                $results[$benchmarkResults->groupName][$benchmarkDescription] = array_map(
-                    static fn (TimeExecuteMemoryUsageIteration $i) => (array) $i,
+                $fileResults[$benchmarkResults->groupName][$benchmarkDescription] = array_map(
+                    static fn (TimeExecuteMemoryUsageIteration $i): array => (array) $i,
                     $timeExecuteMemoryUseIterations
                 );
             }
         }
 
-        $json = json_encode($results, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_BIGINT_AS_STRING);
+        $json = json_encode($fileResults, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_BIGINT_AS_STRING);
 
         file_put_contents($this->outputFile, $json);
 
@@ -72,16 +74,16 @@ final class BenchmarkResultsFile
      */
     public function read(): Generator
     {
-        $results = [];
-        $this->getArrayFromJson($results);
+        $fileResults = [];
+        $this->getArrayFromJson($fileResults);
 
-        foreach ($results as $groupName => $benchmarkResults) {
+        foreach ($fileResults as $groupName => $fileBenchmarkResults) {
             $benchmarkResults = new BenchmarkResults($groupName);
 
-            foreach ($benchmarkResults as $benchmarkDescription => $timeExecuteMemoryUseIterations) {
+            foreach ($fileBenchmarkResults as $benchmarkDescription => $fileTimeExecuteMemoryUseageIterations) {
                 $benchmarkResults->attachResults(
                     $benchmarkDescription,
-                    array_map(static fn (array $i) => new TimeExecuteMemoryUsageIteration(...$i), $timeExecuteMemoryUseIterations)
+                    array_map(static fn (array $i): TimeExecuteMemoryUsageIteration => new TimeExecuteMemoryUsageIteration(...$i), $fileTimeExecuteMemoryUseageIterations)
                 );
             }
 
