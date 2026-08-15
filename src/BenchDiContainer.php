@@ -18,7 +18,7 @@ use function sprintf;
 #[Iterations(100)]
 #[BeforeMethod('buildContainer')]
 #[AfterMethod('unsetContainer')]
-final class BenchFindTaggedDefinitions extends DoBenchAbstract
+final class BenchDiContainer extends DoBenchAbstract
 {
     private DiContainerInterface $container;
 
