@@ -20,10 +20,10 @@ docker-run := docker-compose -f docker-compose.yml run -q --rm php
 generate-fixtures := php generate_fixtures.php
 
 .PHONY: print-results
-print-results-cmd := php print_results.php
+print-results-each-group-cmd := php print_results_each_group.php
 
 print-results:
-	@$(print-results-cmd)
+	@$(print-results-each-group-cmd)
 
 working-dirs := v4.6.x v4.5.x
 
@@ -82,7 +82,7 @@ bench-in-docker:
 		$(docker-run) sh -c "php $$dir/src/index.php"; \
 	done
 
-	@$(docker-run) sh -c "$(print-results-cmd)"
+	@$(docker-run) sh -c "$(print-results-each-group-cmd)"
 
 .PHONY: bench-in-hosted
 bench-in-hosted: fixtures clean-var-dir composer-prepare bench-in-hosted-only-bench print-results

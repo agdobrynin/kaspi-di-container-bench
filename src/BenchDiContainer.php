@@ -16,8 +16,6 @@ use Kaspi\DiContainer\Interfaces\DiContainerInterface;
 use function sprintf;
 
 #[Iterations(100)]
-#[BeforeMethod('buildContainer')]
-#[AfterMethod('unsetContainer')]
 final class BenchDiContainer extends DoBenchAbstract
 {
     private DiContainerInterface $container;
@@ -37,6 +35,8 @@ final class BenchDiContainer extends DoBenchAbstract
     #[Benchmark(
         'Find tagged definitions with tag name "tags.name_bar"',
         priority: 101,
+        beforeMethod: 'buildContainer',
+        afterMethod: 'unsetContainer',
     )]
     public function findTaggedDefinitionsViaAttribute(): void
     {
@@ -69,7 +69,11 @@ final class BenchDiContainer extends DoBenchAbstract
         }
     }
 
-    #[Benchmark('Find via interface name "' . ServiceInterface::class . '"')]
+    #[Benchmark(
+        'Find via interface name "' . ServiceInterface::class . '"',
+        beforeMethod: 'buildContainer',
+        afterMethod: 'unsetContainer',
+    )]
     public function findTaggedDefinitionsViaInterfaceName(): void
     {
         $interfaceName = ServiceInterface::class;
