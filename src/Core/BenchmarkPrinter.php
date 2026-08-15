@@ -12,7 +12,7 @@ final class BenchmarkPrinter
     /**
      * @var list<BenchmarkResults>
      */
-    private readonly array $benchmarkResultsCollection;
+    private array $benchmarkResultsCollection;
     public function attach(BenchmarkResults $benchmarkResults): self
     {
         $this->benchmarkResultsCollection[] = $benchmarkResults;
@@ -58,8 +58,9 @@ LINESE;
         print $this->tableHeader();
 
         foreach ($this->benchmarkResultsCollection as $benchmarkResult) {
-            $benchmarkGroup = str_pad($benchmarkResult->groupName, 108, ' ', STR_PAD_BOTH);
+            $benchmarkGroup = str_pad($benchmarkResult->groupName, 106, ' ', STR_PAD_BOTH);
             print <<< BENCHMARK_GRPUP
+
 |$benchmarkGroup|
 BENCHMARK_GRPUP;
 
