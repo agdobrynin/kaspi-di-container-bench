@@ -19,6 +19,12 @@ no_default:
 docker-run := docker-compose -f docker-compose.yml run -q --rm php
 generate-fixtures := php generate_fixtures.php
 
+.PHONY: print-results
+print-results-cmd := php print_results.php
+
+print-results:
+	@$(print-results-cmd)
+
 working-dirs := v4.6.x v4.5.x
 
 ifdef DEV
@@ -39,7 +45,7 @@ clean-fixtures:
 clean-var-dir-cmd := find var/ -type f ! -name ".git-keep" -delete
 
 clean-var-dir:
-	$(clean-var-dir-cmd)
+	@$(clean-var-dir-cmd)
 
 .PHONY: clean-vendor
 vendor-clean-cmd := find . -maxdepth 2 -type d -name "vendor" -exec rm -rf {} + && find . -maxdepth 2 -type f -name "composer.lock" -delete
@@ -66,19 +72,20 @@ bench-in-hosted-only-bench:
 
 .PHONY: bench-in-docker
 bench-in-docker:
-	@$(docker-run) sh -c "$(generate-fixtures)"
-	# install composer dependencies and optimization
+	@$(docker-run) sh -c "$(generate-fixtures) && $(clean-var-dir-cmd)"
+
 	@for dir in "." $(working-dirs); do \
 		$(composer-install-cmd) --working-dir=$$dir; \
 	done
 
-	#run benchmarks
 	@for dir in $(working-dirs); do \
 		$(docker-run) sh -c "php $$dir/src/index.php"; \
 	done
 
+	@$(docker-run) sh -c "$(print-results-cmd)"
+
 .PHONY: bench-in-hosted
-bench-in-hosted: fixtures composer-prepare bench-in-hosted-only-bench
+bench-in-hosted: fixtures clean-var-dir composer-prepare bench-in-hosted-only-bench print-results
 
 .PHONY: h
 h: bench-in-hosted
