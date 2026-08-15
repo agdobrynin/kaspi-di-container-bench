@@ -19,10 +19,10 @@ no_default:
 docker-run := docker-compose -f docker-compose.yml run -q --rm php
 generate-fixtures := php generate_fixtures.php
 
-ifeq ($(DEV),)
-	working-dirs := v4.5.x v4.6.x
-else
-	working-dirs := v4.5.x v4.6.x v4.x-dev
+working-dirs := v4.6.x v4.5.x
+
+ifdef DEV
+	working-dirs := v4.x-dev $(working-dirs)
 endif
 
 .PHONY: fixtures
