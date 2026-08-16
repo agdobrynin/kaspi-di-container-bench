@@ -9,5 +9,10 @@ use Attribute;
 #[Attribute(Attribute::TARGET_CLASS)]
 final class BeforeMethod
 {
-    public function __construct(public readonly string $beforeMethod) {}
+    /**
+     * Methods called before the execution of each benchmark method.
+     *
+     * @param list<non-empty-string>|non-empty-string $beforeMethod method name or list of method names
+     */
+    public function __construct(public readonly array|string $beforeMethod) {}
 }

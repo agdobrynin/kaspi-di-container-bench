@@ -8,12 +8,17 @@ use ReflectionMethod;
 
 final class BenchMethod
 {
+    /**
+     * @param non-empty-string $description
+     * @param list<ReflectionMethod> $beforeReflectionMethod methods called before the execution of the benchmark method
+     * @param list<ReflectionMethod> $afterReflectionMethod methods called after the execution of the benchmark method
+     */
     public function __construct(
         public readonly string $description,
         public readonly ReflectionMethod $reflectionMethod,
         public readonly int $priority = 0,
         public readonly int $iterations = 1,
-        public readonly false|ReflectionMethod $beforeReflectionMethod = false,
-        public readonly false|ReflectionMethod $afterReflectionMethod = false,
+        public readonly array $beforeReflectionMethod = [],
+        public readonly array $afterReflectionMethod = [],
     ) {}
 }

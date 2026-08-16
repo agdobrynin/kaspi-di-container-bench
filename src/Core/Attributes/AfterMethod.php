@@ -9,5 +9,10 @@ use Attribute;
 #[Attribute(Attribute::TARGET_CLASS)]
 final class AfterMethod
 {
-    public function __construct(public readonly string $afterMethod) {}
+    /**
+     * Methods called after the execution of each benchmark method.
+     *
+     * @param list<non-empty-string>|non-empty-string $afterMethod method name or list of method names
+     */
+    public function __construct(public readonly array|string $afterMethod) {}
 }
