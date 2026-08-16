@@ -1,6 +1,10 @@
 <?php
 declare(strict_types=1);
 
+use Kaspi\Benchmark\Config\Configuration;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
 $fixtures = new class (
     __DIR__ . '/Fixtures/Services',
     __DIR__ . '/Fixtures/Services/Interfaces',
@@ -44,7 +48,7 @@ CONTENT;
  */
 
 $injectService = null;
-$countOfService = 1000;
+$countOfService = Configuration::MaxIndexOfService->getValue();
 
 if ($countOfService === count(glob($fixtures->serviceSrc.'/*.php'))) {
     print "\033[1;33m📂 The fixtures for services already exist.\033[0m\n";
