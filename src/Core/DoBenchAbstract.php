@@ -125,26 +125,39 @@ abstract class DoBenchAbstract
                 ? $attributeBenchmark->description
                 : self::methodToHuman($methodName);
 
-            $iterations = is_int($attributeBenchmark->iterations)
-                ? $attributeBenchmark->iterations
+            /*
+             * Configure benchmark method aka `$reflectionMethod`.
+             */
+
+            /** @var list<ReflectionAttribute<Iterations>> $iterationAttributes */
+            $iterationAttributes = $reflectionMethod->getAttributes(Iterations::class);
+
+            $iterations = isset($iterationAttributes[0])
+                ? $iterationAttributes[0]->newInstance()->iterations
                 : $this->iterationsOnClass;
 
-            $beforeMethods = [] !== $attributeBenchmark->beforeMethod
+            /** @var list<ReflectionAttribute<BeforeMethod>> $beforeMethodAttributes */
+            $beforeMethodAttributes = $reflectionMethod->getAttributes(BeforeMethod::class);
+
+            $beforeMethods = isset($beforeMethodAttributes[0])
                 ? [...$this->checkAvailableMethod(
-                    (array)$attributeBenchmark->beforeMethod,
-                    $attributeBenchmark::class,
+                    (array) $beforeMethodAttributes[0]->newInstance()->beforeMethod,
+                    BeforeMethod::class,
                     'beforeMethod',
-                    $reflectionMethod)
-                ]
+                    $reflectionMethod,
+                )]
                 : $this->beforeMethodOnClass;
 
-            $afterMethods = [] !== $attributeBenchmark->afterMethod
+            /** @var list<ReflectionAttribute<AfterMethod>> $afterMethodAttributes */
+            $afterMethodAttributes = $reflectionMethod->getAttributes(AfterMethod::class);
+
+            $afterMethods = isset($afterMethodAttributes[0])
                 ? [...$this->checkAvailableMethod(
-                    (array)$attributeBenchmark->afterMethod,
-                    $attributeBenchmark::class,
+                    (array) $afterMethodAttributes[0]->newInstance()->afterMethod,
+                    AfterMethod::class,
                     'afterMethod',
-                    $reflectionMethod)
-                ]
+                    $reflectionMethod,
+                )]
                 : $this->afterMethodOnClass;
 
             $benchmarkMethods[] = new BenchMethod(

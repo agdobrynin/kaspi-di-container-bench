@@ -6,6 +6,8 @@ namespace Kaspi\Benchmark;
 
 use DomainException;
 use Fixtures\Services\Interfaces\ServiceInterface;
+use Kaspi\Benchmark\Core\Attributes\AfterMethod;
+use Kaspi\Benchmark\Core\Attributes\BeforeMethod;
 use Kaspi\Benchmark\Core\Attributes\Benchmark;
 use Kaspi\Benchmark\Core\Attributes\Iterations;
 use Kaspi\Benchmark\Core\DoBenchAbstract;
@@ -33,9 +35,9 @@ final class BenchDiContainer extends DoBenchAbstract
     #[Benchmark(
         'Find tagged definitions with tag name "tags.name_bar"',
         priority: 101,
-        beforeMethod: 'buildContainer',
-        afterMethod: 'unsetContainer',
     )]
+    #[BeforeMethod('buildContainer')]
+    #[AfterMethod('unsetContainer')]
     public function findTaggedDefinitionsViaAttribute(): void
     {
         $tag = 'tags.name_bar';
@@ -69,9 +71,9 @@ final class BenchDiContainer extends DoBenchAbstract
 
     #[Benchmark(
         'Find via interface name "' . ServiceInterface::class . '"',
-        beforeMethod: 'buildContainer',
-        afterMethod: 'unsetContainer',
     )]
+    #[BeforeMethod('buildContainer')]
+    #[AfterMethod('unsetContainer')]
     public function findTaggedDefinitionsViaInterfaceName(): void
     {
         $interfaceName = ServiceInterface::class;
