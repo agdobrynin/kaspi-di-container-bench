@@ -55,14 +55,22 @@ clean-vendor:
 
 clean-all: clean-var-dir clean-fixtures clean-vendor
 
-.PHONY: composer-prepare
-composer-install-cmd := composer i --no-dev -n -o -a
+.PHONY: composer-install
+composer-install-cmd := composer i --no-dev -n
 
-# --working-dir
-composer-prepare:
+composer-install:
 	@for dir in "." $(working-dirs); do \
   		$(composer-install-cmd) --working-dir=$$dir; \
 	done
+
+.PHONY: composer-autoloader
+composer-autoloader-cmd := composer dump-autoload -o -a
+
+composer-autoloader:
+	@for dir in "." $(working-dirs); do \
+  		$(composer-autoloader-cmd) --working-dir=$$dir; \
+	done
+
 
 .PHONY: bench-in-hosted-only-bench
 bench-in-hosted-only-bench:
@@ -72,10 +80,14 @@ bench-in-hosted-only-bench:
 
 .PHONY: bench-in-docker
 bench-in-docker:
+	@for dir in "." $(working-dirs); do \
+		$(composer-install-cmd) --working-dir=$$dir; \
+	done
+
 	@$(docker-run) sh -c "$(generate-fixtures) && $(clean-var-dir-cmd)"
 
 	@for dir in "." $(working-dirs); do \
-		$(composer-install-cmd) --working-dir=$$dir; \
+		$(composer-autoloader-cmd) --working-dir=$$dir; \
 	done
 
 	@for dir in $(working-dirs); do \
@@ -85,7 +97,7 @@ bench-in-docker:
 	@$(docker-run) sh -c "$(print-results-each-group-cmd)"
 
 .PHONY: bench-in-hosted
-bench-in-hosted: fixtures clean-var-dir composer-prepare bench-in-hosted-only-bench print-results
+bench-in-hosted: clean-var-dir composer-install fixtures composer-autoloader bench-in-hosted-only-bench print-results
 
 .PHONY: h
 h: bench-in-hosted

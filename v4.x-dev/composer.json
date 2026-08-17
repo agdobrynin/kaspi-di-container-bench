@@ -2,9 +2,6 @@
     "require": {
         "kaspi/di-container": "v4.x-dev"
     },
-    "config": {
-        "classmap-authoritative": true
-    },
     "autoload": {
         "psr-4": {
             "ContainerV46Dev\\": "src",
