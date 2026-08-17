@@ -229,7 +229,7 @@ final class BenchDiContainer extends DoBenchAbstract
     #[Benchmark]
     #[Iterations(500)]
     #[BeforeMethod(['tenServicesIds', 'buildContainerWithZeroConfig'])]
-    #[AfterMethod('unsetTenServicesIds', 'unsetContainer')]
+    #[AfterMethod(['unsetTenServicesIds', 'unsetContainer'])]
     public function testResolveServicesWithZeroConfig(): void
     {
         $serviceWithNamespace = '\\'.Configuration::ServicesNamespace->getValue().'\\'.Configuration::ServicesNamePrefix->getValue();
