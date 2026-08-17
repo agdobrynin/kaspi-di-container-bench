@@ -204,31 +204,6 @@ abstract class DoBenchAbstract
         $this->benchmarkMethods = $benchmarkMethods;
     }
 
-    final protected static function runBenchmark(callable $callback): TimeExecuteMemoryUsageIteration
-    {
-        gc_collect_cycles();
-
-        $startMemoryUsage = memory_get_usage();
-        $startPeakUsage = memory_get_peak_usage();
-        $startHrTime = hrtime(true);
-
-        // Execute the target function
-        $callback();
-
-        $endMemoryUsage = memory_get_usage();
-        $endMemoryPeakUsage = memory_get_peak_usage();
-        $endHrTime = hrtime(true);
-
-        return new TimeExecuteMemoryUsageIteration(
-            $startMemoryUsage,
-            $endMemoryUsage,
-            $startPeakUsage,
-            $endMemoryPeakUsage,
-            $startHrTime,
-            $endHrTime,
-        );
-    }
-
     final protected static function methodToHuman(string $methodName): string
     {
         $step1 = str_replace(['_', '-'], ' ', $methodName);
@@ -273,7 +248,24 @@ abstract class DoBenchAbstract
                         Formatter::progressBar($benchmarkTitle, $i, $benchmarkMethod->iterations);
                     }
 
-                    $timeMemory = self::runBenchmark(fn() => $benchmarkMethod->reflectionMethod->invokeArgs($this, $benchmarkArgs));
+                    gc_collect_cycles();
+
+                    $startMemoryUsage = memory_get_usage();
+                    $startPeakUsage = memory_get_peak_usage();
+                    $startHrTime = hrtime(true);
+
+                    // Execute the target method
+                    $benchmarkMethod->targetReflectionMethod->invokeArgs($this, $benchmarkArgs);
+
+                    $timeMemory = new TimeExecuteMemoryUsageIteration(
+                        $startMemoryUsage,
+                        memory_get_usage(),
+                        $startPeakUsage,
+                        memory_get_peak_usage(),
+                        $startHrTime,
+                        hrtime(true),
+                    );
+
                     $this->benchmarkResults->attach(
                         $benchmarkDescription,
                         $timeMemory

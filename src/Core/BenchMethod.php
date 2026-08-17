@@ -17,7 +17,7 @@ final class BenchMethod
      */
     public function __construct(
         public readonly string $description,
-        public readonly ReflectionMethod $reflectionMethod,
+        public readonly ReflectionMethod $targetReflectionMethod,
         public readonly int $priority = 0,
         public readonly int $iterations = 1,
         public readonly array $beforeReflectionMethod = [],
