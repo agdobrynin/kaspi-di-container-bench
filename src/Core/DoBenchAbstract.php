@@ -10,14 +10,18 @@ use Kaspi\Benchmark\Core\Attributes\AfterMethod;
 use Kaspi\Benchmark\Core\Attributes\BeforeMethod;
 use Kaspi\Benchmark\Core\Attributes\Benchmark;
 use Kaspi\Benchmark\Core\Attributes\Iterations;
+use Kaspi\Benchmark\Core\Attributes\Parameters;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
+use TypeError;
 use function gc_collect_cycles;
 use function gc_enable;
+use function get_debug_type;
 use function hrtime;
-use function is_int;
+use function is_array;
+use function is_callable;
 use function is_string;
 use function memory_get_peak_usage;
 use function memory_get_usage;
@@ -50,6 +54,11 @@ abstract class DoBenchAbstract
      * @var list<ReflectionMethod>
      */
     protected readonly array $afterMethodOnClass;
+
+    /**
+     * @var list<callable(): Generator|array>
+     */
+    protected readonly array $parametersOnClass;
 
     final public function __construct(
         protected readonly BenchmarkResults $benchmarkResults,
@@ -107,6 +116,15 @@ abstract class DoBenchAbstract
             $this->afterMethodOnClass = [];
         }
 
+        /** @var list<ReflectionAttribute<Parameters>> $parametersOnClassAttributes */
+        $parametersOnClassAttributes = $this->reflectionClass->getAttributes(Parameters::class);
+
+        if (isset($parametersOnClassAttributes[0])) {
+            $this->parametersOnClass = $this->buildParameters($parametersOnClassAttributes[0], $this->reflectionClass);
+        } else {
+            $this->parametersOnClass = [];
+        }
+
         foreach ($this->reflectionMethods as $methodName => $reflectionMethod) {
             // Benchmark method must be declared with modifier public and non-static
             if (!$reflectionMethod->isPublic() || $reflectionMethod->isStatic()) {
@@ -160,6 +178,14 @@ abstract class DoBenchAbstract
                 )]
                 : $this->afterMethodOnClass;
 
+            /** @var list<ReflectionAttribute<Parameters>> $parametersMethodAttributes */
+            $parametersMethodAttributes = $reflectionMethod->getAttributes(Parameters::class);
+
+            $parameters = isset($parametersMethodAttributes[0])
+                ? $this->buildParameters($parametersMethodAttributes[0], $reflectionMethod)
+                : $this->parametersOnClass;
+
+
             $benchmarkMethods[] = new BenchMethod(
                 $description,
                 $reflectionMethod,
@@ -167,6 +193,7 @@ abstract class DoBenchAbstract
                 $iterations,
                 $beforeMethods,
                 $afterMethods,
+                $parameters,
             );
         }
 
@@ -220,32 +247,49 @@ abstract class DoBenchAbstract
         $benchmarkTitle = null;
 
         foreach ($this->benchmarkMethods as $benchmarkMethod) {
-            foreach ($benchmarkMethod->beforeReflectionMethod as $beforeMethod) {
-                $beforeMethod->invoke($this);
-            }
+            $args = $this->benchmarkParameters($benchmarkMethod);
 
-            if ($this->showProgressBar) {
-                print "\n";
-                $benchmarkTitle = sprintf('[%s] %s', $this->benchmarkResults->groupName, $benchmarkMethod->description);
-            }
-
-
-            for ($i = 1; $i <= $benchmarkMethod->iterations; ++$i) {
-                if (null !== $benchmarkTitle) {
-                    Formatter::progressBar($benchmarkTitle, $i, $benchmarkMethod->iterations);
+            do {
+                foreach ($benchmarkMethod->beforeReflectionMethod as $beforeMethod) {
+                    $beforeMethod->invoke($this);
                 }
 
-                $timeMemory = self::runBenchmark(fn() => $benchmarkMethod->reflectionMethod->invoke($this));
-                $this->benchmarkResults->attach($benchmarkMethod->description, $timeMemory);
-            }
+                if ($args->valid()) {
+                    $benchmarkArgs = $args->current();
+                    $benchmarkDescription = sprintf('%s [params from: "%s"]', $benchmarkMethod->description, $args->key());
+                } else {
+                    $benchmarkArgs = [];
+                    $benchmarkDescription = $benchmarkMethod->description;
+                }
 
-            if ($this->showProgressBar) {
-                print "\n";
-            }
+                if ($this->showProgressBar) {
+                    print "\n";
+                    $benchmarkTitle = sprintf('[%s] %s', $this->benchmarkResults->groupName, $benchmarkDescription);
+                }
 
-            foreach ($benchmarkMethod->afterReflectionMethod as $afterMethod) {
-                $afterMethod->invoke($this);
-            }
+
+                for ($i = 1; $i <= $benchmarkMethod->iterations; ++$i) {
+                    if (null !== $benchmarkTitle) {
+                        Formatter::progressBar($benchmarkTitle, $i, $benchmarkMethod->iterations);
+                    }
+
+                    $timeMemory = self::runBenchmark(fn() => $benchmarkMethod->reflectionMethod->invokeArgs($this, $benchmarkArgs));
+                    $this->benchmarkResults->attach(
+                        $benchmarkDescription,
+                        $timeMemory
+                    );
+                }
+
+                if ($this->showProgressBar) {
+                    print "\n";
+                }
+
+                foreach ($benchmarkMethod->afterReflectionMethod as $afterMethod) {
+                    $afterMethod->invoke($this);
+                }
+
+                $args->next();
+            } while ($args->valid());
         }
 
         if ($this->showProgressBar) {
@@ -259,6 +303,8 @@ abstract class DoBenchAbstract
      * @param non-empty-list<non-empty-string> $methods
      *
      * @return Generator<ReflectionMethod>
+     *
+     * @throws InvalidArgumentException
      */
     final protected function checkAvailableMethod(array $methods, string $classAttribute, string $parameterName, ReflectionClass|ReflectionMethod $on): Generator
     {
@@ -273,6 +319,75 @@ abstract class DoBenchAbstract
             }
 
             yield $this->reflectionMethods[$method];
+        }
+    }
+
+    /**
+     * @param ReflectionAttribute<Parameters> $parameters
+     *
+     * @return array<callable(): Generator|array>
+     *
+     * @throws InvalidArgumentException
+     */
+    final protected function buildParameters(ReflectionAttribute $parameters, ReflectionMethod|ReflectionClass $on): array
+    {
+        try {
+            return $parameters->newInstance()->parameters;
+        } catch (TypeError $error) {
+            $onName = $on instanceof ReflectionClass
+                ? $on->getName() . '::class'
+                : $on->getDeclaringClass()->getName() . '::' . $on->getName() . '()';
+            throw new InvalidArgumentException(
+                sprintf('The attribute `%s` failed validation for the %s. Reason by: %s', Parameters::class, $onName, $error->getMessage()),
+                previous: $error,
+            );
+        }
+    }
+
+    /**
+     * @return Generator<non-empty-string, array<array-key, mixed>>
+     *
+     * @throws InvalidArgumentException
+     */
+    final protected function benchmarkParameters(BenchMethod $benchMethod): Generator
+    {
+        if ([] === $benchMethod->parameters) {
+            return;
+        }
+
+        /** @var array<string, true> $flippedArgsNames */
+        $flippedArgsNames = [];
+
+        foreach ($benchMethod->parameters as $parameter) {
+            $gotParameters = ($parameter)();
+            $callableName = '';
+            is_callable($parameter, callable_name: $callableName);
+
+
+            if (!$gotParameters instanceof Generator && !is_array($gotParameters)) {
+                throw new InvalidArgumentException(
+                    sprintf('Source parameters %s must be return an array or Generator, got %s.', $callableName, get_debug_type($gotParameters)),
+                );
+            }
+
+            foreach ($gotParameters as $groupName => $args) {
+                if (!is_string($groupName) || '' === $groupName) {
+                    throw new InvalidArgumentException(
+                        sprintf('The parameter group name in the parameter source %s() must be a non-empty string.', $callableName)
+                    );
+                }
+
+                if (isset($flippedArgsNames[$groupName])) {
+                    throw new InvalidArgumentException(
+                        sprintf('The parameter group name "%s" is not unique in the parameter source %s().', $groupName, $callableName)
+                    );
+                }
+
+                $flippedArgsNames[$groupName] = true;
+                $key = sprintf('%s(%s)', $callableName, var_export($groupName, true));
+
+                yield $key => $args;
+            }
         }
     }
 }
