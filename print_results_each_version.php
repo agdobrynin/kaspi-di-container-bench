@@ -14,4 +14,4 @@ foreach ($file->read() as $benchmarkResult) {
     $printer->attach($benchmarkResult);
 }
 
-$printer->printEachGroup();
+$printer->printEachVersion();

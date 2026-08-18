@@ -48,7 +48,7 @@ LINESE;
 
     }
 
-    public function printEachGroup(): void
+    public function printEachVersion(): void
     {
         if (!isset($this->benchmarkResultsCollection)) {
             print "Benchmark results collection is empty.\n";
