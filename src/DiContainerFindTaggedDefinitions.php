@@ -37,7 +37,7 @@ final class DiContainerFindTaggedDefinitions extends BenchmarkAbstract
 
     #[Benchmark]
     #[Parameters([self::class, 'dataProvider'])]
-    public function findTaggedDefinitionsViaAttribute(DiContainer $container, string $tag): void
+    public function findTaggedDefinitions(DiContainer $container, string $tag): void
     {
         // first call
         $found = false;
