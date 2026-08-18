@@ -14,7 +14,7 @@ $benchResultsFile = new BenchmarkResultsFile(Configuration::JsonFileResult->getV
 /** @var callable(string $ver): list<DoBenchAbstract> $benches */
 $benches = require __DIR__.'/../../src/index.php';
 
-foreach ($benches('v4.5.x') as $bench) {
+foreach ($benches() as $bench) {
     $benchResultsFile->attach($bench->doBenchmarks());
 }
 
