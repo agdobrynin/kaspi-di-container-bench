@@ -19,9 +19,13 @@ final class BenchmarkResults
     private array $timeExecuteMemoryUsingSumItems;
 
     /**
+     * @param non-empty-string $packageVersion
      * @param non-empty-string $groupName
      */
-    public function __construct(public readonly string $groupName) {}
+    public function __construct(
+        public readonly string $packageVersion,
+        public readonly string $groupName,
+    ) {}
 
     /**
      * @param non-empty-string $benchmarkDescription

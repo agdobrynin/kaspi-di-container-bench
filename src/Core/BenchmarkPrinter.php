@@ -58,7 +58,7 @@ LINESE;
         print $this->tableHeader();
 
         foreach ($this->benchmarkResultsCollection as $benchmarkResult) {
-            $benchmarkGroup = str_pad($benchmarkResult->groupName, 106, ' ', STR_PAD_BOTH);
+            $benchmarkGroup = str_pad(' ['.$benchmarkResult->packageVersion.'] '. $benchmarkResult->groupName, 106);
             print <<< BENCHMARK_GRPUP
 
 |$benchmarkGroup|

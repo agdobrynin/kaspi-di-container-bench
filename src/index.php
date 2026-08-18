@@ -9,10 +9,10 @@ return static function (): Generator {
     $version = InstalledVersions::getPrettyVersion('kaspi/di-container');
 
     yield new DiContainerFindTaggedDefinitions(
-        new BenchmarkResults($version.'/find-tagged-definitions'),
+        new BenchmarkResults($version,'Find tagged definitions'),
     );
 
     yield new DiContainerGet(
-        new BenchmarkResults($version.'/get'),
+        new BenchmarkResults($version, 'Get services'),
     );
 };
