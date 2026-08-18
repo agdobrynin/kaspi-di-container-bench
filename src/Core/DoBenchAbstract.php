@@ -125,6 +125,8 @@ abstract class DoBenchAbstract
             $this->parametersOnClass = [];
         }
 
+        $benchmarkMethods = [];
+
         foreach ($this->reflectionMethods as $methodName => $reflectionMethod) {
             // Benchmark method must be declared with modifier public and non-static
             if (!$reflectionMethod->isPublic() || $reflectionMethod->isStatic()) {
