@@ -29,10 +29,10 @@ use function sprintf;
 use function usort;
 use function var_export;
 
-abstract class DoBenchAbstract
+abstract class BenchmarkAbstract
 {
     /**
-     * @var BenchMethod[]
+     * @var BenchmarkMethod[]
      */
     protected readonly array $benchmarkMethods;
 
@@ -188,7 +188,7 @@ abstract class DoBenchAbstract
                 : $this->parametersOnClass;
 
 
-            $benchmarkMethods[] = new BenchMethod(
+            $benchmarkMethods[] = new BenchmarkMethod(
                 $description,
                 $reflectionMethod,
                 $attributeBenchmark->priority,
@@ -199,7 +199,7 @@ abstract class DoBenchAbstract
             );
         }
 
-        usort($benchmarkMethods, static function (BenchMethod $a, BenchMethod $b) {
+        usort($benchmarkMethods, static function (BenchmarkMethod $a, BenchmarkMethod $b) {
             return $b->priority <=> $a->priority;
         });
 
@@ -343,7 +343,7 @@ abstract class DoBenchAbstract
      *
      * @throws InvalidArgumentException
      */
-    final protected function benchmarkParameters(BenchMethod $benchMethod): Generator
+    final protected function benchmarkParameters(BenchmarkMethod $benchMethod): Generator
     {
         if ([] === $benchMethod->parameters) {
             return;

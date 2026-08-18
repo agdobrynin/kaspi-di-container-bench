@@ -7,7 +7,7 @@ namespace Kaspi\Benchmark\Core;
 use Generator;
 use ReflectionMethod;
 
-final class BenchMethod
+final class BenchmarkMethod
 {
     /**
      * @param non-empty-string $description

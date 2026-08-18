@@ -10,7 +10,7 @@ use Kaspi\Benchmark\Config\Configuration;
 use Kaspi\Benchmark\Core\Attributes\Benchmark;
 use Kaspi\Benchmark\Core\Attributes\Iterations;
 use Kaspi\Benchmark\Core\Attributes\Parameters;
-use Kaspi\Benchmark\Core\DoBenchAbstract;
+use Kaspi\Benchmark\Core\BenchmarkAbstract;
 use Kaspi\DiContainer\DiContainer;
 use Kaspi\DiContainer\DiContainerBuilder;
 use Kaspi\DiContainer\DiContainerConfig;
@@ -18,7 +18,7 @@ use function is_object;
 use function sprintf;
 
 #[Iterations(100)]
-final class DiContainerGet extends DoBenchAbstract
+final class DiContainerGet extends BenchmarkAbstract
 {
     #[Benchmark]
     #[Parameters([self::class, 'ContainerZeroOnRandomIds'])]
