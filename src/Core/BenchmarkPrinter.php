@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Kaspi\Benchmark\Core;
 
-use function str_pad;
-use const STR_PAD_BOTH;
+use function explode;
+use function sprintf;
+use function wordwrap;
+use const PHP_EOL;
 
 final class BenchmarkPrinter
 {
@@ -29,20 +31,19 @@ final class BenchmarkPrinter
     {
         $th = <<< TABLEHEAD
 
-+-----+---------------------------------------------------+-------+-----------------------+----------------+
-|     |                                                   |       |         Memory        |                |
-| No. | Benchmark description                             | Iter. +-----------+-----------+ Time execution |
-|     |                                                   |       | Allocated |   Peak    |                |
+|     |                                                      |       |         Memory            |    Time     |
+| No. | Benchmark description                                | Iter. +-------------+-------------+  execution  |
+|     |                                                      |       |  Allocated  |    Peak     |             |
 TABLEHEAD;
 
-        return $th.$this->tableLineSeparator();
+        return $this->tableLineSeparator() . $th . $this->tableLineSeparator();
     }
 
     public function tableLineSeparator(): string
     {
         return <<< LINESE
 
-+-----+-----------------------------------------------------------+-----------+-----------+----------------+
++-----+------------------------------------------------------+-------+-------------+-------------+-------------+
 LINESE;
 
     }
@@ -57,35 +58,40 @@ LINESE;
 
         print $this->tableHeader();
 
+        $currentPackageVersion = null;
+
         foreach ($this->benchmarkResultsCollection as $benchmarkResult) {
-            $benchmarkGroup = str_pad(' ['.$benchmarkResult->packageVersion.'] '. $benchmarkResult->groupName, 106);
-            print <<< BENCHMARK_GRPUP
+            if ($currentPackageVersion !== $benchmarkResult->packageVersion) {
+                print sprintf("\n| %-108.108s |", $benchmarkResult->packageVersion);
+                $currentPackageVersion = $benchmarkResult->packageVersion;
+                print sprintf("\n+%'-110s+", '');
+            }
 
-|$benchmarkGroup|
-BENCHMARK_GRPUP;
-
+            print sprintf("\n| %-108.108s |", $benchmarkResult->groupName);
             print $this->tableLineSeparator();
 
             $timeExecuteMemoryUsingSumItems =  $benchmarkResult->getTimeExecuteMemoryUsingSumItems();
 
             $n = 1;
+            $formatResult = PHP_EOL . '| %-3.3s | %-52.52s | %-5.5s | %-11.11s | %-11.11s | %-11.11s |';
 
             foreach ($timeExecuteMemoryUsingSumItems as $benchmarkDescription => $timeExecuteMemoryUsingSum) {
-                $no = str_pad($n . '', 5, ' ', STR_PAD_BOTH);
-                $iter = str_pad($timeExecuteMemoryUsingSum->iterations . '', 7, ' ', STR_PAD_BOTH);
+                $description = explode("\n", wordwrap($benchmarkDescription, 52, cut_long_words: true));
 
-                $description_cut = \strlen($benchmarkDescription) > 50 ?
-                    substr($benchmarkDescription, 0, 47) . '...'
-                    : $benchmarkDescription;
-                $prepare_description = ' ' . str_pad($description_cut, 50);
+                print sprintf(
+                    $formatResult,
+                    $n,
+                    $description[0],
+                    $timeExecuteMemoryUsingSum->iterations,
+                    Formatter::formatBytes($timeExecuteMemoryUsingSum->memoryUsageUsage, 4),
+                    Formatter::formatBytes($timeExecuteMemoryUsingSum->memoryPeakUsage, 4),
+                    Formatter::formatTimeExecute($timeExecuteMemoryUsingSum->hrTime, 4),
+                );
 
-                $net = str_pad(Formatter::formatBytes($timeExecuteMemoryUsingSum->memoryUsageUsage, 4), 11, ' ', STR_PAD_BOTH);
-                $peak = str_pad(Formatter::formatBytes($timeExecuteMemoryUsingSum->memoryPeakUsage, 4), 11, ' ', STR_PAD_BOTH);
-                $time = str_pad(Formatter::formatTimeExecute($timeExecuteMemoryUsingSum->hrTime, 4), 16, ' ', STR_PAD_BOTH);
-                print <<< ROW
+                for ($i = 1, $c = count($description); $i < $c; $i++) {
+                    print sprintf($formatResult, '', $description[$i], '', '', '', '');
+                }
 
-|$no|$prepare_description|$iter|$net|$peak|$time|
-ROW;
                 print $this->tableLineSeparator();
                 $n++;
             }
