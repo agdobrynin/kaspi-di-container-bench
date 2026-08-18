@@ -233,7 +233,7 @@ abstract class BenchmarkAbstract
 
                 if ($args->valid()) {
                     $benchmarkArgs = $args->current();
-                    $benchmarkDescription = sprintf('%s [params from: "%s"]', $benchmarkMethod->description, $args->key());
+                    $benchmarkDescription = sprintf('%s [%s]', $benchmarkMethod->description, $args->key());
                 } else {
                     $benchmarkArgs = [];
                     $benchmarkDescription = $benchmarkMethod->description;
@@ -378,7 +378,7 @@ abstract class BenchmarkAbstract
                 }
 
                 $flippedArgsNames[$groupName] = true;
-                $key = sprintf('%s(%s)', $callableName, var_export($groupName, true));
+                $key = sprintf('params name %s from %s()', var_export($groupName, true), $callableName);
 
                 yield $key => $args;
             }
