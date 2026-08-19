@@ -47,7 +47,7 @@ TABLEHEAD;
 
         foreach ($this->benchmarkResultsCollection as $benchmarkResult) {
             if ($currentPackageVersion !== $benchmarkResult->packageVersion) {
-                printf("\n+%'-98s+", '');
+                printf("\n\n+%'-98s+", '');
                 printf("\n| %-96s |", $benchmarkResult->packageVersion);
                 print $tableHead;
                 $currentPackageVersion = $benchmarkResult->packageVersion;
@@ -79,8 +79,6 @@ TABLEHEAD;
 
                 printf($formatTableLineSeparator, '', '', '', '', '', '');
             }
-
-            print "\n";
         }
 
         print "\n";
