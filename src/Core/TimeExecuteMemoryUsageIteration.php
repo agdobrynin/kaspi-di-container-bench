@@ -13,6 +13,7 @@ final class TimeExecuteMemoryUsageIteration
         public readonly int $endMemoryPeakUsage,
         public readonly float $startHrTime,
         public readonly float $endHrTime,
+        public readonly int $numberOfTimes,
     ) {}
 
     public function memoryUsage(): int
@@ -27,6 +28,6 @@ final class TimeExecuteMemoryUsageIteration
 
     public function HrTime(): float
     {
-        return $this->endHrTime - $this->startHrTime;
+        return ($this->endHrTime - $this->startHrTime) / $this->numberOfTimes;
     }
 }

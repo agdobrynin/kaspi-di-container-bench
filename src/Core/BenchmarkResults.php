@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kaspi\Benchmark\Core;
 
 use function count;
+use function current;
 
 final class BenchmarkResults
 {
@@ -74,8 +75,11 @@ final class BenchmarkResults
          * @var list<TimeExecuteMemoryUsageIteration> $benchmarkResults
          */
         foreach ($this->results as $benchmarkDescription => $benchmarkResults) {
-            $srcMemoryAllocated = $srcMemoryPeak = $srcTime = 0;
+            $srcMemoryAllocated = $srcMemoryPeak = $srcTime = $numberOfTimes = 0;
             $iterations = count($benchmarkResults);
+            if ($firstItem = current($benchmarkResults)) {
+                $numberOfTimes = $firstItem->numberOfTimes;
+            }
 
             foreach ($benchmarkResults as $benchmarkResult) {
                 $srcMemoryAllocated += $benchmarkResult->memoryUsage();
@@ -88,6 +92,7 @@ final class BenchmarkResults
                 $srcMemoryPeak,
                 $srcTime,
                 $iterations,
+                $numberOfTimes,
             );
         }
 

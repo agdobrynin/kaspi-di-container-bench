@@ -10,6 +10,7 @@ use Kaspi\Benchmark\Core\Attributes\AfterMethod;
 use Kaspi\Benchmark\Core\Attributes\BeforeMethod;
 use Kaspi\Benchmark\Core\Attributes\Benchmark;
 use Kaspi\Benchmark\Core\Attributes\Iterations;
+use Kaspi\Benchmark\Core\Attributes\NumberOfTimes;
 use Kaspi\Benchmark\Core\Attributes\Parameters;
 use ReflectionAttribute;
 use ReflectionClass;
@@ -59,6 +60,11 @@ abstract class BenchmarkAbstract
      * @var list<callable(): Generator|array>
      */
     protected readonly array $parametersOnClass;
+
+    /**
+     * @var int
+     */
+    protected readonly int $numberOfTimesOnClass;
 
     final public function __construct(
         protected readonly BenchmarkResults $benchmarkResults,
@@ -125,6 +131,13 @@ abstract class BenchmarkAbstract
             $this->parametersOnClass = [];
         }
 
+        /** @var list<ReflectionAttribute<NumberOfTimes>> $numberOfTimesOnClassAttributes */
+        $numberOfTimesOnClassAttributes = $this->reflectionClass->getAttributes(NumberOfTimes::class);
+
+        $this->numberOfTimesOnClass = isset($numberOfTimesOnClassAttributes[0])
+            ? $numberOfTimesOnClassAttributes[0]->newInstance()->numberOfTimes
+            : 1;
+
         $benchmarkMethods = [];
 
         foreach ($this->reflectionMethods as $methodName => $reflectionMethod) {
@@ -187,6 +200,13 @@ abstract class BenchmarkAbstract
                 ? $this->buildParameters($parametersMethodAttributes[0], $reflectionMethod)
                 : $this->parametersOnClass;
 
+            /** @var list<ReflectionAttribute<NumberOfTimes>> $numberOfTimesMethodAttributes */
+            $numberOfTimesMethodAttributes = $reflectionMethod->getAttributes(NumberOfTimes::class);
+
+            $numberOfTimes = isset($numberOfTimesMethodAttributes[0])
+                ? $numberOfTimesMethodAttributes[0]->newInstance()->numberOfTimes
+                : $this->numberOfTimesOnClass;
+
 
             $benchmarkMethods[] = new BenchmarkMethod(
                 $description,
@@ -196,6 +216,7 @@ abstract class BenchmarkAbstract
                 $beforeMethods,
                 $afterMethods,
                 $parameters,
+                $numberOfTimes,
             );
         }
 
@@ -257,7 +278,9 @@ abstract class BenchmarkAbstract
                     $startHrTime = hrtime(true);
 
                     // Execute the target method
-                    $benchmarkMethod->targetReflectionMethod->invokeArgs($this, $benchmarkArgs);
+                    for ($n = 0; $n < $benchmarkMethod->numberOfTimes; ++$n) {
+                        $benchmarkMethod->targetReflectionMethod->invokeArgs($this, $benchmarkArgs);
+                    }
 
                     $timeMemory = new TimeExecuteMemoryUsageIteration(
                         $startMemoryUsage,
@@ -266,6 +289,7 @@ abstract class BenchmarkAbstract
                         memory_get_peak_usage(),
                         $startHrTime,
                         hrtime(true),
+                        $benchmarkMethod->numberOfTimes,
                     );
 
                     $this->benchmarkResults->attach(

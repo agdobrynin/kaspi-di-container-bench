@@ -23,5 +23,6 @@ final class BenchmarkMethod
         public readonly array $beforeReflectionMethod = [],
         public readonly array $afterReflectionMethod = [],
         public readonly array $parameters = [],
+        public readonly int $numberOfTimes = 1,
     ) {}
 }

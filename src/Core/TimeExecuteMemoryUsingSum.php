@@ -11,5 +11,6 @@ final class TimeExecuteMemoryUsingSum
         public readonly float $memoryPeakUsage,
         public readonly float $hrTime,
         public readonly float $iterations,
+        public readonly int $numberOfTimes,
     ) {}
 }
