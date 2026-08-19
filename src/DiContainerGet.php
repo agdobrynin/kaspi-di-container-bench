@@ -9,6 +9,7 @@ use Generator;
 use Kaspi\Benchmark\Config\Configuration;
 use Kaspi\Benchmark\Core\Attributes\Benchmark;
 use Kaspi\Benchmark\Core\Attributes\Iterations;
+use Kaspi\Benchmark\Core\Attributes\NumberOfTimes;
 use Kaspi\Benchmark\Core\Attributes\Parameters;
 use Kaspi\Benchmark\Core\BenchmarkAbstract;
 use Kaspi\DiContainer\DiContainer;
@@ -18,11 +19,12 @@ use function is_object;
 use function sprintf;
 
 #[Iterations(100)]
+#[NumberOfTimes(10)]
 final class DiContainerGet extends BenchmarkAbstract
 {
     #[Benchmark]
     #[Parameters([self::class, 'ContainerZeroOnRandomIds'])]
-    public function resolveServiceWithZeroConfigOn(DiContainer $container, iterable $ids): void
+    public function resolveServiceWithZeroConfigTrue(DiContainer $container, iterable $ids): void
     {
         foreach ($ids as $id) {
             $service = $container->get($id);
@@ -48,7 +50,7 @@ final class DiContainerGet extends BenchmarkAbstract
 
     #[Benchmark]
     #[Parameters([self::class, 'ContainerZeroOffRandomIds'])]
-    public function resolveServiceWithImportAllZeroConfigOff(DiContainer $container, iterable $ids): void
+    public function resolveServiceWithImportAllZeroConfigFalse(DiContainer $container, iterable $ids): void
     {
         foreach ($ids as $id) {
             $service = $container->get($id);

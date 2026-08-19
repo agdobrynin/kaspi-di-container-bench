@@ -9,6 +9,7 @@ use Fixtures\Services\Interfaces\ServiceInterface;
 use Generator;
 use Kaspi\Benchmark\Core\Attributes\Benchmark;
 use Kaspi\Benchmark\Core\Attributes\Iterations;
+use Kaspi\Benchmark\Core\Attributes\NumberOfTimes;
 use Kaspi\Benchmark\Core\Attributes\Parameters;
 use Kaspi\Benchmark\Core\BenchmarkAbstract;
 use Kaspi\DiContainer\DiContainer;
@@ -16,6 +17,7 @@ use Kaspi\DiContainer\DiContainerBuilder;
 use function sprintf;
 
 #[Iterations(100)]
+#[NumberOfTimes(10)]
 final class DiContainerFindTaggedDefinitions extends BenchmarkAbstract
 {
     public static function dataProvider(): Generator
