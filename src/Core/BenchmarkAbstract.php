@@ -268,7 +268,7 @@ abstract class BenchmarkAbstract
 
                 for ($i = 1; $i <= $benchmarkMethod->iterations; ++$i) {
                     if (null !== $benchmarkTitle) {
-                        Formatter::progressBar($benchmarkTitle, $i, $benchmarkMethod->iterations);
+                        Formatter::progressBar($benchmarkTitle, $i, $benchmarkMethod->iterations, sizeBar: 33);
                     }
 
                     gc_collect_cycles();
