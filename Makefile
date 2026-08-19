@@ -25,6 +25,13 @@ print-results-each-version-cmd := php print_results_each_version.php
 print-results:
 	@$(print-results-each-version-cmd)
 
+.PHONY: print-compare-versions
+print-compare-versions-cmd := php print_compare_versions.php
+
+print-compare-versions:
+	@$(print-compare-versions-cmd)
+
+
 working-dirs := v4.6.x v4.5.x
 
 ifdef DEV
