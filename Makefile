@@ -101,10 +101,10 @@ bench-in-docker:
 		$(docker-run) sh -c "php $$dir/src/index.php"; \
 	done
 
-	@$(docker-run) sh -c "$(print-results-each-version-cmd)"
+	@$(docker-run) sh -c "$(print-compare-versions-cmd)"
 
 .PHONY: bench-in-hosted
-bench-in-hosted: clean-var-dir composer-install fixtures composer-autoloader bench-in-hosted-only-bench print-results
+bench-in-hosted: clean-var-dir composer-install fixtures composer-autoloader bench-in-hosted-only-bench print-compare-versions
 
 .PHONY: h
 h: bench-in-hosted
