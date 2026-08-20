@@ -11,6 +11,10 @@ use function max;
 final class Iterations
 {
     public readonly int $iterations;
+
+    /**
+     * @param positive-int $iterations
+     */
     public function __construct(int $iterations = 1)
     {
         $this->iterations = max($iterations, 1);

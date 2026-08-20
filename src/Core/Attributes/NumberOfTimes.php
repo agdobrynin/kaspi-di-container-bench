@@ -11,6 +11,10 @@ use function max;
 final class NumberOfTimes
 {
     public readonly int $numberOfTimes;
+
+    /**
+     * @param positive-int $numberOfTimes
+     */
     public function __construct(int $numberOfTimes = 1)
     {
         $this->numberOfTimes = max($numberOfTimes, 1);
