@@ -6,7 +6,6 @@ namespace Kaspi\Benchmark;
 
 use DomainException;
 use Generator;
-use Kaspi\Benchmark\Config\Configuration;
 use Kaspi\Benchmark\Core\Attributes\Benchmark;
 use Kaspi\Benchmark\Core\Attributes\Iterations;
 use Kaspi\Benchmark\Core\Attributes\NumberOfTimes;
@@ -15,21 +14,18 @@ use Kaspi\Benchmark\Core\BenchmarkAbstract;
 use Kaspi\DiContainer\DiContainer;
 use Kaspi\DiContainer\DiContainerBuilder;
 use Kaspi\DiContainer\DiContainerConfig;
-use function is_object;
 use function sprintf;
 
 #[Iterations(100)]
 #[NumberOfTimes(2)]
-final class DiContainerGet extends BenchmarkAbstract
+final class DiContainerHas extends BenchmarkAbstract
 {
     #[Benchmark]
     #[Parameters([self::class, 'ContainerZeroOnRandomIds'])]
-    public function resolveServiceWithZeroConfigTrue(DiContainer $container, iterable $ids): void
+    public function hasServiceWithZeroConfigTrue(DiContainer $container, iterable $ids): void
     {
         foreach ($ids as $id) {
-            $service = $container->get($id);
-
-            if (!is_object($service)) {
+            if (!$container->has($id)) {
                 throw new DomainException(
                     sprintf('Service "%s" not found.', $id)
                 );
@@ -50,12 +46,10 @@ final class DiContainerGet extends BenchmarkAbstract
 
     #[Benchmark]
     #[Parameters([self::class, 'ContainerZeroOffRandomIds'])]
-    public function resolveServiceWithImportAllZeroConfigFalse(DiContainer $container, iterable $ids): void
+    public function hasServiceWithImportAllZeroConfigFalse(DiContainer $container, iterable $ids): void
     {
         foreach ($ids as $id) {
-            $service = $container->get($id);
-
-            if (!is_object($service)) {
+            if (!$container->get($id)) {
                 throw new DomainException(
                     sprintf('Service "%s" not found.', $id)
                 );
