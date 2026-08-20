@@ -53,7 +53,7 @@ final class Formatter
     public static function progressBar(string $title, int $step, int $total, int $sizeTitle = 60, $sizeBar = 39): void
     {
         $normalizedTitle = strlen($title) > $sizeTitle
-            ? substr($title, 0, $sizeTitle - 3) . '...'
+            ? substr($title, 0, $sizeTitle - 1) . '…'
             : str_pad($title, $sizeTitle, ' ');
 
         $percentage = (float)($step / $total);
