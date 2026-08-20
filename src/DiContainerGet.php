@@ -19,7 +19,7 @@ use function is_object;
 use function sprintf;
 
 #[Iterations(100)]
-#[NumberOfTimes(10)]
+#[NumberOfTimes(2)]
 final class DiContainerGet extends BenchmarkAbstract
 {
     #[Benchmark]

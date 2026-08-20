@@ -19,7 +19,7 @@ use Kaspi\DiContainer\Interfaces\DiContainerInterface;
 use function sprintf;
 
 #[Iterations(100)]
-#[NumberOfTimes(10)]
+#[NumberOfTimes(2)]
 #[BeforeMethod('buildContainer')]
 #[AfterMethod('unsetContainer')]
 final class DiContainerFindTaggedDefinitions extends BenchmarkAbstract
