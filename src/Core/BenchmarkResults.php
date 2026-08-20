@@ -6,6 +6,7 @@ namespace Kaspi\Benchmark\Core;
 
 use function count;
 use function current;
+use function max;
 
 final class BenchmarkResults
 {
@@ -15,9 +16,9 @@ final class BenchmarkResults
     private array $results = [];
 
     /**
-     * @var array{non-empty-string, TimeExecuteMemoryUsingSum}
+     * @var array{non-empty-string, TimeExecuteMemoryUsingTotal}
      */
-    private array $timeExecuteMemoryUsingSumItems;
+    private array $timeExecuteMemoryUsingTotalItems;
 
     /**
      * @param non-empty-string $packageVersion
@@ -34,7 +35,7 @@ final class BenchmarkResults
     public function attach(string $benchmarkDescription, TimeExecuteMemoryUsageIteration $result): void
     {
         $this->results[$benchmarkDescription][] = $result;
-        unset($this->timeExecuteMemoryUsingSumItems);
+        unset($this->timeExecuteMemoryUsingTotalItems);
     }
 
     /**
@@ -44,7 +45,7 @@ final class BenchmarkResults
     public function attachResults(string $benchmarkDescription, array $results): void
     {
         $this->results[$benchmarkDescription] = $results;
-        unset($this->timeExecuteMemoryUsingSumItems);
+        unset($this->timeExecuteMemoryUsingTotalItems);
     }
 
     /**
@@ -60,47 +61,79 @@ final class BenchmarkResults
     /**
      * A key of array benchmark description.
      *
-     * @return array<non-empty-string, TimeExecuteMemoryUsingSum>
+     * @return array<non-empty-string, TimeExecuteMemoryUsingTotal>
      */
-    public function getTimeExecuteMemoryUsingSumItems(): array
+    public function getTimeExecuteMemoryUsingTotalItems(): array
     {
-        if (isset($this->timeExecuteMemoryUsingSumItems)) {
-            return $this->timeExecuteMemoryUsingSumItems;
+        if (isset($this->timeExecuteMemoryUsingTotalItems)) {
+            return $this->timeExecuteMemoryUsingTotalItems;
         }
 
-        $this->timeExecuteMemoryUsingSumItems = [];
+        $this->timeExecuteMemoryUsingTotalItems = [];
 
         /**
          * @var non-empty-string $benchmarkDescription
          * @var list<TimeExecuteMemoryUsageIteration> $benchmarkResults
          */
         foreach ($this->results as $benchmarkDescription => $benchmarkResults) {
-            $srcMemoryAllocated = $srcMemoryPeak = $srcTime = $numberOfTimes = 0;
-            $iterations = count($benchmarkResults);
-            if ($firstItem = current($benchmarkResults)) {
-                $numberOfTimes = $firstItem->numberOfTimes;
-            }
+            $total = $this->calculateTotal($benchmarkResults);
 
-            foreach ($benchmarkResults as $benchmarkResult) {
-                $srcMemoryAllocated += $benchmarkResult->memoryUsage();
-                $srcMemoryPeak += $benchmarkResult->memoryPeakUsage();
-                $srcTime += $benchmarkResult->HrTime();
+            if (false !== $total) {
+                $this->timeExecuteMemoryUsingTotalItems[$benchmarkDescription] = $total;
             }
+        }
 
-            $this->timeExecuteMemoryUsingSumItems[$benchmarkDescription] = new TimeExecuteMemoryUsingSum(
-                $srcMemoryAllocated,
-                $srcMemoryPeak,
-                $srcTime,
+        return $this->timeExecuteMemoryUsingTotalItems;
+    }
+
+    public function reset(): void
+    {
+        unset($this->results, $this->timeExecuteMemoryUsingTotalItems);
+    }
+
+    /**
+     * @param non-empty-list<TimeExecuteMemoryUsageIteration> $benchmarkResults
+     */
+    private function calculateTotal(array $benchmarkResults): false|TimeExecuteMemoryUsingTotal
+    {
+        $firstItem = current($benchmarkResults);
+
+        if (false === $firstItem) {
+            return false;
+        }
+
+        $numberOfTimes = $firstItem->numberOfTimes;
+        $iterations = count($benchmarkResults);
+
+        if ($iterations === 1) {
+            return new TimeExecuteMemoryUsingTotal(
+                $firstItem->memoryUsage(),
+                $firstItem->memoryPeakUsage(),
+                $firstItem->hrTime(),
                 $iterations,
                 $numberOfTimes,
             );
         }
 
-        return $this->timeExecuteMemoryUsingSumItems;
-    }
+        /**
+         * @var int $maxMemoryAllocated
+         * @var int $maxMemoryPeak
+         * @var int $maxTime
+         */
+        $maxMemoryAllocated = $maxMemoryPeak = $maxTime = 0;
 
-    public function reset(): void
-    {
-        unset($this->results, $this->timeExecuteMemoryUsingSumItems);
+        foreach ($benchmarkResults as $benchmarkResult) {
+            $maxMemoryAllocated = max($benchmarkResult->memoryUsage(), $maxMemoryAllocated);
+            $maxMemoryPeak = max($benchmarkResult->memoryPeakUsage(), $maxMemoryPeak);
+            $maxTime = max($benchmarkResult->hrTime(), $maxTime);
+        }
+
+        return new TimeExecuteMemoryUsingTotal(
+            $maxMemoryAllocated,
+            $maxMemoryPeak,
+            $maxTime,
+            $iterations,
+            $numberOfTimes,
+        );
     }
 }

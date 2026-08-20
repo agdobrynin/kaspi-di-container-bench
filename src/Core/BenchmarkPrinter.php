@@ -57,20 +57,20 @@ TABLEHEAD;
             printf("\n| %-96s |", $benchmarkResult->groupName);
             printf($formatTableLineSeparator, '', '', '', '', '', '');
 
-            $timeExecuteMemoryUsingSumItems =  $benchmarkResult->getTimeExecuteMemoryUsingSumItems();
+            $timeExecuteMemoryUsingTotalItems =  $benchmarkResult->getTimeExecuteMemoryUsingTotalItems();
 
 
-            foreach ($timeExecuteMemoryUsingSumItems as $benchmarkDescription => $timeExecuteMemoryUsingSum) {
+            foreach ($timeExecuteMemoryUsingTotalItems as $benchmarkDescription => $timeExecuteMemoryUsingTotal) {
                 $description = explode("\n", wordwrap($benchmarkDescription, 38, cut_long_words: true));
 
                 printf(
                     $formatResult,
                     $description[0],
-                    $timeExecuteMemoryUsingSum->iterations,
-                    $timeExecuteMemoryUsingSum->numberOfTimes,
-                    Formatter::formatBytes($timeExecuteMemoryUsingSum->memoryUsageUsage, 4),
-                    Formatter::formatBytes($timeExecuteMemoryUsingSum->memoryPeakUsage, 4),
-                    Formatter::formatTimeExecute($timeExecuteMemoryUsingSum->hrTime, 4),
+                    $timeExecuteMemoryUsingTotal->iterations,
+                    $timeExecuteMemoryUsingTotal->numberOfTimes,
+                    Formatter::formatBytes($timeExecuteMemoryUsingTotal->memoryUsageUsage, 4),
+                    Formatter::formatBytes($timeExecuteMemoryUsingTotal->memoryPeakUsage, 4),
+                    Formatter::formatTimeExecute($timeExecuteMemoryUsingTotal->hrTime, 4),
                 );
 
                 for ($i = 1, $c = count($description); $i < $c; $i++) {
@@ -91,8 +91,8 @@ TABLEHEAD;
 
         // collect results group by "benchmark group name", "benchmark description", "package version".
         foreach ($this->benchmarkResultsCollection as $benchmarkResult) {
-            foreach ($benchmarkResult->getTimeExecuteMemoryUsingSumItems() as $benchmarkDescription => $timeExecuteMemoryUsingSum) {
-                $tableResults[$benchmarkResult->groupName][$benchmarkDescription][$benchmarkResult->packageVersion] = $timeExecuteMemoryUsingSum;
+            foreach ($benchmarkResult->getTimeExecuteMemoryUsingTotalItems() as $benchmarkDescription => $timeExecuteMemoryUsingTotal) {
+                $tableResults[$benchmarkResult->groupName][$benchmarkDescription][$benchmarkResult->packageVersion] = $timeExecuteMemoryUsingTotal;
             }
         }
 
@@ -120,20 +120,20 @@ TABLEHEAD;
                 $lastPackageVersion = array_key_last($packageVersions);
                 /**
                  * @var string $packageVersion
-                 * @var TimeExecuteMemoryUsingSum $timeExecuteMemoryUsingSum
+                 * @var TimeExecuteMemoryUsingTotal $timeExecMemTotal
                  */
-                foreach ($packageVersions as $packageVersion => $timeExecuteMemoryUsingSum) {
+                foreach ($packageVersions as $packageVersion => $timeExecMemTotal) {
                     $descriptionWrapLine = array_shift($descriptionWrap);
 
                     printf(
                         $formatResult,
                         $descriptionWrapLine,
                         $packageVersion,
-                        $timeExecuteMemoryUsingSum->iterations,
-                        $timeExecuteMemoryUsingSum->numberOfTimes,
-                        Formatter::formatBytes($timeExecuteMemoryUsingSum->memoryUsageUsage, 4),
-                        Formatter::formatBytes($timeExecuteMemoryUsingSum->memoryPeakUsage, 4),
-                        Formatter::formatTimeExecute($timeExecuteMemoryUsingSum->hrTime, 4),
+                        $timeExecMemTotal->iterations,
+                        $timeExecMemTotal->numberOfTimes,
+                        Formatter::formatBytes($timeExecMemTotal->memoryUsageUsage, 4),
+                        Formatter::formatBytes($timeExecMemTotal->memoryPeakUsage, 4),
+                        Formatter::formatTimeExecute($timeExecMemTotal->hrTime, 4),
                     );
 
                     if ($lastPackageVersion !== $packageVersion) {

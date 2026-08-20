@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Kaspi\Benchmark\Core;
 
-final class TimeExecuteMemoryUsingSum
+final class TimeExecuteMemoryUsingTotal
 {
     public function __construct(
         public readonly float $memoryUsageUsage,
