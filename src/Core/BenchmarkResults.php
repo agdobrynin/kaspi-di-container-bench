@@ -16,7 +16,7 @@ final class BenchmarkResults
     private array $results = [];
 
     /**
-     * @var array{non-empty-string, TimeExecuteMemoryUsingTotal}
+     * @var array<non-empty-string, TimeExecuteMemoryUsingTotal>
      */
     private array $timeExecuteMemoryUsingTotalItems;
 
