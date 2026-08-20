@@ -5,9 +5,14 @@ declare(strict_types=1);
 namespace Kaspi\Benchmark\Core\Attributes;
 
 use Attribute;
+use function max;
 
 #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
 final class Iterations
 {
-    public function __construct(public readonly int $iterations = 1) {}
+    public readonly int $iterations;
+    public function __construct(int $iterations = 1)
+    {
+        $this->iterations = max($iterations, 1);
+    }
 }
