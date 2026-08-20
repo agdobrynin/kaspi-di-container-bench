@@ -13,11 +13,11 @@ return static function (): Generator {
         new BenchmarkResults($version,'Find tagged definitions'),
     );
 
-    yield new DiContainerGet(
-        new BenchmarkResults($version, 'Get services'),
-    );
-
     yield new DiContainerHas(
         new BenchmarkResults($version, 'Has services'),
+    );
+
+    yield new DiContainerGet(
+        new BenchmarkResults($version, 'Get services'),
     );
 };
