@@ -123,12 +123,15 @@ TABLEHEAD;
                  * @var TimeExecuteMemoryUsingTotal $timeExecMemTotal
                  */
                 foreach ($packageVersions as $packageVersion => $timeExecMemTotal) {
+                    $packageVersionPrint = \strlen($packageVersion) > 7
+                        ? substr($packageVersion, 0, 6).'…'
+                        : $packageVersion;
                     $descriptionWrapLine = array_shift($descriptionWrap);
 
                     printf(
                         $formatResult,
                         $descriptionWrapLine,
-                        $packageVersion,
+                        $packageVersionPrint,
                         $timeExecMemTotal->iterations,
                         $timeExecMemTotal->numberOfTimes,
                         Formatter::formatBytes($timeExecMemTotal->memoryUsageUsage, 4),
