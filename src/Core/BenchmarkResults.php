@@ -116,22 +116,22 @@ final class BenchmarkResults
         }
 
         /**
-         * @var int $maxMemoryAllocated
-         * @var int $maxMemoryPeak
-         * @var int $maxTime
+         * @var int $sumMemoryAllocated
+         * @var int $sumMemoryPeak
+         * @var int $sumTime
          */
-        $maxMemoryAllocated = $maxMemoryPeak = $maxTime = 0;
+        $sumMemoryAllocated = $sumMemoryPeak = $sumTime = 0;
 
         foreach ($benchmarkResults as $benchmarkResult) {
-            $maxMemoryAllocated = max($benchmarkResult->memoryUsage(), $maxMemoryAllocated);
-            $maxMemoryPeak = max($benchmarkResult->memoryPeakUsage(), $maxMemoryPeak);
-            $maxTime = max($benchmarkResult->hrTime(), $maxTime);
+            $sumMemoryAllocated += $benchmarkResult->memoryUsage();
+            $sumMemoryPeak += $benchmarkResult->memoryPeakUsage();
+            $sumTime += $benchmarkResult->hrTime();
         }
 
         return new TimeExecuteMemoryUsingTotal(
-            $maxMemoryAllocated,
-            $maxMemoryPeak,
-            $maxTime,
+            $sumMemoryAllocated,
+            $sumMemoryPeak,
+            $sumTime,
             $iterations,
             $numberOfTimes,
         );
