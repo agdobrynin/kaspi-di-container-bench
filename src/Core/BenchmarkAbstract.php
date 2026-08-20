@@ -378,11 +378,11 @@ abstract class BenchmarkAbstract
 
         foreach ($benchMethod->parameters as $parameter) {
             $gotParameters = ($parameter)();
-            $callableName = '';
-            is_callable($parameter, callable_name: $callableName);
-
 
             if (!$gotParameters instanceof Generator && !is_array($gotParameters)) {
+                $callableName = '';
+                is_callable($parameter, callable_name: $callableName);
+
                 throw new InvalidArgumentException(
                     sprintf('Source parameters %s must be return an array or Generator, got %s.', $callableName, get_debug_type($gotParameters)),
                 );
@@ -390,12 +390,18 @@ abstract class BenchmarkAbstract
 
             foreach ($gotParameters as $groupName => $args) {
                 if (!is_string($groupName) || '' === $groupName) {
+                    $callableName = '';
+                    is_callable($parameter, callable_name: $callableName);
+
                     throw new InvalidArgumentException(
                         sprintf('The parameter group name in the parameter source %s() must be a non-empty string.', $callableName)
                     );
                 }
 
                 if (isset($flippedArgsNames[$groupName])) {
+                    $callableName = '';
+                    is_callable($parameter, callable_name: $callableName);
+
                     throw new InvalidArgumentException(
                         sprintf('The parameter group name "%s" is not unique in the parameter source %s().', $groupName, $callableName)
                     );
