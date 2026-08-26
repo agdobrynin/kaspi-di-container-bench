@@ -2,18 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Kaspi\Benchmark;
+namespace App;
 
 use DomainException;
 use Fixtures\Services\Interfaces\ServiceInterface;
 use Generator;
-use Kaspi\Benchmark\Core\Attributes\AfterMethod;
-use Kaspi\Benchmark\Core\Attributes\BeforeMethod;
-use Kaspi\Benchmark\Core\Attributes\Benchmark;
-use Kaspi\Benchmark\Core\Attributes\Iterations;
-use Kaspi\Benchmark\Core\Attributes\NumberOfTimes;
-use Kaspi\Benchmark\Core\Attributes\Parameters;
-use Kaspi\Benchmark\Core\BenchmarkAbstract;
+use Kaspi\Benchmark\Attributes\AfterMethod;
+use Kaspi\Benchmark\Attributes\BeforeMethod;
+use Kaspi\Benchmark\Attributes\Benchmark;
+use Kaspi\Benchmark\Attributes\Iterations;
+use Kaspi\Benchmark\Attributes\NumberOfTimes;
+use Kaspi\Benchmark\Attributes\Parameters;
 use Kaspi\DiContainer\DiContainerBuilder;
 use Kaspi\DiContainer\Interfaces\DiContainerInterface;
 use function sprintf;
@@ -22,7 +21,7 @@ use function sprintf;
 #[NumberOfTimes(2)]
 #[BeforeMethod('buildContainer')]
 #[AfterMethod('unsetContainer')]
-final class DiContainerFindTaggedDefinitions extends BenchmarkAbstract
+final class DiContainerFindTaggedDefinitions
 {
     private DiContainerInterface $container;
     private function buildContainer(): void

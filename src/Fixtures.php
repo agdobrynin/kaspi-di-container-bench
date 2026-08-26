@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kaspi\Benchmark;
+namespace App;
 
 use Fixtures\Services\Interfaces\ServiceInterface;
 use Fixtures\Services\Service300;

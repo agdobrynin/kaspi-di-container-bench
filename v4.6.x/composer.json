@@ -1,11 +1,12 @@
 {
     "require": {
-        "kaspi/di-container": "4.6.*"
+        "kaspi/di-container": "4.6.*",
+        "kaspi/benchmark": "^0.1"
     },
     "autoload": {
         "psr-4": {
             "ContainerV46\\": "src",
-            "Kaspi\\Benchmark\\": "../src/",
+            "App\\": "../src/",
             "Fixtures\\": "../Fixtures"
         },
         "files": [

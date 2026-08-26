@@ -4,10 +4,13 @@
     },
     "autoload": {
         "psr-4": {
-            "Kaspi\\Benchmark\\": "src"
+            "App\\": "src"
         },
         "files" : [
             "Configuration.php"
         ]
+    },
+    "require": {
+        "kaspi/benchmark": "^0.1"
     }
 }

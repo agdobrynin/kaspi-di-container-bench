@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Kaspi\Benchmark;
+namespace App;
 
 use DomainException;
 use Generator;
-use Kaspi\Benchmark\Core\Attributes\Benchmark;
-use Kaspi\Benchmark\Core\Attributes\Iterations;
-use Kaspi\Benchmark\Core\Attributes\NumberOfTimes;
-use Kaspi\Benchmark\Core\Attributes\Parameters;
-use Kaspi\Benchmark\Core\BenchmarkAbstract;
+use Kaspi\Benchmark\Attributes\Benchmark;
+use Kaspi\Benchmark\Attributes\Iterations;
+use Kaspi\Benchmark\Attributes\NumberOfTimes;
+use Kaspi\Benchmark\Attributes\Parameters;
 use Kaspi\DiContainer\DiContainer;
 use Kaspi\DiContainer\DiContainerBuilder;
 use Kaspi\DiContainer\DiContainerConfig;
@@ -20,7 +19,7 @@ use function sprintf;
 
 #[Iterations(100)]
 #[NumberOfTimes(2)]
-final class DiContainerGet extends BenchmarkAbstract
+final class DiContainerGet
 {
     #[Benchmark]
     #[Parameters([self::class, 'ContainerZeroOnRandomIds'])]

@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
+use Kaspi\Benchmark\BenchmarkPrinter;
+use Kaspi\Benchmark\BenchmarkResultsFile;
 use Kaspi\Benchmark\Config\Configuration;
-use Kaspi\Benchmark\Core\BenchmarkPrinter;
-use Kaspi\Benchmark\Core\BenchmarkResultsFile;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
