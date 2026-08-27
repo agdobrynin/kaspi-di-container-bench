@@ -27,19 +27,19 @@ use function sprintf;
 final class DiContainerGet
 {
     #[Benchmark('Resolve service')]
-    #[Parameters([self::class, 'runtimeContainer'])]
-    public function resolveServicesAtConstructor(DiContainer $runtimeContainer): void
+    #[Parameters([self::class, 'container'])]
+    public function resolveServicesAtConstructor(DiContainer $container): void
     {
-        if (!is_object($runtimeContainer->get(ParamsRandomServices::class))) {
+        if (!is_object($container->get(ParamsRandomServices::class))) {
             throw new DomainException(
                 'Invalid initial service '.ParamsRandomServices::class
             );
         }
     }
 
-    public static function runtimeContainer(): Generator
+    public static function container(): Generator
     {
-        yield 'zero config and one alias' => [
+        yield 'runtime container, zero config and one alias' => [
             (new DiContainerBuilder(
                 new DiContainerConfig(
                     useZeroConfigurationDefinition: true,
@@ -51,9 +51,40 @@ final class DiContainerGet
                 ])
                 ->build()
         ];
+
+        yield 'runtime container, import all and one alias' => [
+            (new DiContainerBuilder(
+                new DiContainerConfig(
+                    useZeroConfigurationDefinition: false,
+                    useAttribute: true,
+                )
+            ))
+                ->import('App\\', __DIR__.'/FixturesForGet')
+                ->import('Fixtures\\', __DIR__.'/../Fixtures')
+                ->addDefinitions([
+                    'alias_of_service_300' => diAutowire(Service300::class),
+                ])
+                ->build()
+        ];
+
+        yield 'compiled container and one alias' => [
+            (new DiContainerBuilder(
+                new DiContainerConfig(
+                    useZeroConfigurationDefinition: false,
+                    useAttribute: true,
+                )
+            ))
+                ->import('App\\', __DIR__.'/FixturesForGet')
+                ->import('Fixtures\\', __DIR__.'/../Fixtures')
+                ->addDefinitions([
+                    'alias_of_service_300' => diAutowire(Service300::class),
+                ])
+                ->compileToFile(__DIR__.'/../var', 'ContainerGet', options: ['force_rebuild' => true])
+                ->build()
+        ];
     }
 
-    #[Benchmark('Tagged arguments as lazy loading.')]
+    #[Benchmark('Tagged arguments as lazy loading')]
     #[Parameters([self::class, 'forTaggedParams'])]
     #[NumberOfTimes(20)]
     public function getServiceWithTaggedParameterAsTagName(DiContainer $container, string $id): void
@@ -72,6 +103,21 @@ final class DiContainerGet
                 useZeroConfigurationDefinition: false,
             )
         ))
+            ->import('App\\', __DIR__.'/FixturesForTaggedAs')
+            ->import('Fixtures\\', __DIR__.'/../Fixtures')
+            ->build()
+        ;
+
+        yield 'runtime container, import all' => [
+            $container,
+            ParamsTaggedAs::class,
+        ];
+
+        $container = (new DiContainerBuilder(
+            new DiContainerConfig(
+                useZeroConfigurationDefinition: false,
+            )
+        ))
             ->compileToFile(__DIR__.'/../var', 'ContainerGetTaggedArg', options: ['force_rebuild' => true])
             ->import(
                 'App\\',
@@ -83,21 +129,6 @@ final class DiContainerGet
         ;
 
         yield 'compiled container' => [
-            $container,
-            ParamsTaggedAs::class,
-        ];
-
-        $container = (new DiContainerBuilder(
-            new DiContainerConfig(
-                useZeroConfigurationDefinition: false,
-            )
-        ))
-            ->import('App\\', __DIR__.'/FixturesForTaggedAs')
-            ->import('Fixtures\\', __DIR__.'/../Fixtures')
-            ->build()
-        ;
-
-        yield 'runtime container' => [
             $container,
             ParamsTaggedAs::class,
         ];

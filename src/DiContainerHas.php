@@ -15,106 +15,64 @@ use Kaspi\DiContainer\DiContainer;
 use Kaspi\DiContainer\DiContainerBuilder;
 use Kaspi\DiContainer\DiContainerConfig;
 use function array_keys;
+use function shuffle;
 use function sprintf;
 
-#[Group('Has services')]
+#[Group('Has')]
 #[Iterations(100)]
-#[NumberOfTimes(2)]
+#[NumberOfTimes(20)]
 final class DiContainerHas
 {
+    /**
+     * @param DiContainer $container
+     * @param iterable<non-empty-string, bool> $ids
+     */
     #[Benchmark]
-    #[Parameters([self::class, 'ContainerZeroOnRandomIds'])]
-    public function hasServiceWithZeroConfigTrue(DiContainer $container, iterable $ids): void
+    #[Parameters([self::class, 'containerAndIds'])]
+    public function hasService(DiContainer $container, iterable $ids): void
     {
-        foreach ($ids as $id) {
-            if (!$container->has($id)) {
+        foreach ($ids as $id => $exist) {
+            if ($exist !== $container->has($id)) {
                 throw new DomainException(
-                    sprintf('Service "%s" not found.', $id)
+                    sprintf('Invalid has for id "%s".', $id)
                 );
             }
         }
     }
 
-    public static function ContainerZeroOnRandomIds(): Generator
-    {
-        $config = new DiContainerConfig(useZeroConfigurationDefinition: true);
-        $container = (new DiContainerBuilder($config))
-            ->addDefinitions(Fixtures::configuredDefinitions())
-            ->build();
 
-        yield 'random 10 services' => [
-            $container,
-            [...Fixtures::randomExistIds(), ...array_keys([...Fixtures::configuredDefinitions()])],
+    public static function containerAndIds(): Generator
+    {
+        $keys = array_keys(Fixtures::randomExistIds() + Fixtures::randomNoneExistIds() + Fixtures::configuredDefinitions());
+        shuffle($keys);
+        $ids = [];
+
+        foreach ($keys as $key) {
+            $ids[$key] = isset(Fixtures::configuredDefinitions()[$key]) || isset(Fixtures::randomExistIds()[$key]);
+        }
+
+        yield 'runtime container and zero config' => [
+            (new DiContainerBuilder(new DiContainerConfig(useZeroConfigurationDefinition: true)))
+                ->addDefinitions(Fixtures::configuredDefinitions())
+                ->build(),
+            $ids,
         ];
-    }
 
-    #[Benchmark]
-    #[Parameters([self::class, 'ContainerZeroOffRandomIds'])]
-    public function hasServiceWithImportAllZeroConfigFalse(DiContainer $container, iterable $ids): void
-    {
-        foreach ($ids as $id) {
-            if (!$container->get($id)) {
-                throw new DomainException(
-                    sprintf('Service "%s" not found.', $id)
-                );
-            }
-        }
-    }
-
-    public static function ContainerZeroOffRandomIds(): Generator
-    {
-        $config = new DiContainerConfig(useZeroConfigurationDefinition: false);
-
-        $container = (new DiContainerBuilder($config))
-            ->import('Fixtures\\', __DIR__.'/../Fixtures')
-            ->addDefinitions(Fixtures::configuredDefinitions())
-            ->build();
-
-        yield 'random 10 services' => [
-            $container,
-            [...Fixtures::randomExistIds(), ...array_keys([...Fixtures::configuredDefinitions()])],
+        yield 'runtime container and import all' => [
+            (new DiContainerBuilder(new DiContainerConfig(useZeroConfigurationDefinition: false)))
+                ->import('Fixtures\\', __DIR__.'/../Fixtures')
+                ->addDefinitions(Fixtures::configuredDefinitions())
+                ->build(),
+            $ids,
         ];
-    }
 
-    #[Benchmark]
-    #[Parameters([self::class, 'CompiledContainerRandomIds'])]
-    public function hasServiceOnCompiledContainer(DiContainer $container, iterable $ids, iterable $noneExistIds): void
-    {
-        foreach ($ids as $id) {
-            if (!$container->has($id)) {
-                throw new DomainException(
-                    sprintf('Service "%s" not found.', $id)
-                );
-            }
-        }
-
-        foreach ($noneExistIds as $id) {
-            if ($container->has($id)) {
-                throw new DomainException(
-                    sprintf('Service "%s" found.', $id)
-                );
-            }
-        }
-    }
-
-    public static function CompiledContainerRandomIds(): Generator
-    {
-        $container = (new DiContainerBuilder(
-            new DiContainerConfig(
-                useZeroConfigurationDefinition: false,
-            )
-        ))
-            ->import('Fixtures\\', __DIR__.'/../Fixtures')
-            ->addDefinitions(
-                Fixtures::configuredDefinitions()
-            )
-            ->compileToFile(__DIR__.'/../var', 'ContainerHas', options: ['force_rebuild' => true])
-            ->build();
-
-        yield 'random 10 services' => [
-            $container,
-            [...Fixtures::randomExistIds(), ...array_keys([...Fixtures::configuredDefinitions()])],
-            Fixtures::randomNoneExistIds(),
+        yield 'compiled container' => [
+            (new DiContainerBuilder(new DiContainerConfig(useZeroConfigurationDefinition: false)))
+                ->import('Fixtures\\', __DIR__.'/../Fixtures')
+                ->addDefinitions(Fixtures::configuredDefinitions())
+                ->compileToFile(__DIR__.'/../var', 'ContainerHas', options: ['force_rebuild' => true])
+                ->build(),
+            $ids,
         ];
     }
 }
