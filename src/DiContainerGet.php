@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App;
 
+use App\FixturesForTaggedAs\TaggedAsInterface;
+use App\FixturesForTaggedAs\TaggedAsTagName;
 use DomainException;
 use Generator;
 use Kaspi\Benchmark\Attributes\Benchmark;
@@ -93,7 +95,7 @@ final class DiContainerGet
     }
 
     #[Benchmark]
-    #[Parameters([self::class, 'CompiledContainerRandomIds'])]
+    #[Parameters([self::class, 'compiledContainerRandomIds'])]
     public function resolveServiceOnCompiledContainer(DiContainer $container, iterable $ids, iterable $noneExistIds): void
     {
         foreach ($ids as $id) {
@@ -112,22 +114,58 @@ final class DiContainerGet
         }
     }
 
-    public static function CompiledContainerRandomIds(): Generator
+    #[Benchmark('Get service with tagged argument')]
+    #[Parameters([self::class, 'compiledContainerWithTaggedDefinitions'])]
+    public function getServiceWithTaggedParameterAsTagName(DiContainer $container, string $id): void
+    {
+        if (!is_object($container->get($id))) {
+            throw new DomainException(
+                sprintf('Service "%s" not found.', $id)
+            );
+        }
+    }
+
+    public static function compiledContainerRandomIds(): Generator
     {
         $container = (new DiContainerBuilder(
             new DiContainerConfig(
                 useZeroConfigurationDefinition: false,
             )
         ))
-            ->import('Fixtures\\', __DIR__.'/../Fixtures')
             ->compileToFile(__DIR__.'/../var', 'ContainerGet', options: ['force_rebuild' => true])
             ->addDefinitions(Fixtures::configuredDefinitions())
-            ->build();
+            ->import('Fixtures\\', __DIR__.'/../Fixtures')
+            ->build()
+        ;
 
         yield 'random 10 services' => [
             $container,
             [...Fixtures::randomExistIds(), ...array_keys([...Fixtures::configuredDefinitions()])],
             Fixtures::randomNoneExistIds(),
+        ];
+    }
+
+    public static function compiledContainerWithTaggedDefinitions(): Generator
+    {
+        $container = (new DiContainerBuilder(
+            new DiContainerConfig(
+                useZeroConfigurationDefinition: false,
+            )
+        ))
+            ->compileToFile(__DIR__.'/../var', 'ContainerGetTaggedArg', options: ['force_rebuild' => true])
+            ->import('App\\', __DIR__.'/FixturesForTaggedAs')
+            ->import('Fixtures\\', __DIR__.'/../Fixtures')
+            ->build()
+        ;
+
+        yield [
+            $container,
+            TaggedAsInterface::class,
+        ];
+
+        yield [
+            $container,
+            TaggedAsTagName::class,
         ];
     }
 }

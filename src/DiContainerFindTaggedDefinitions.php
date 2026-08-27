@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App;
 
+use App\FixturesForTaggedAs\TaggedAsInterface;
+use App\FixturesForTaggedAs\TaggedAsTagName;
 use DomainException;
 use Fixtures\Services\Interfaces\ServiceInterface;
 use Generator;
@@ -16,6 +18,7 @@ use Kaspi\Benchmark\Attributes\NumberOfTimes;
 use Kaspi\Benchmark\Attributes\Parameters;
 use Kaspi\DiContainer\DiContainerBuilder;
 use Kaspi\DiContainer\Interfaces\DiContainerInterface;
+use function is_object;
 use function sprintf;
 
 #[Group('Find tagged definitions')]
@@ -30,6 +33,7 @@ final class DiContainerFindTaggedDefinitions
     {
         $this->container = (new DiContainerBuilder())
             ->import('Fixtures\\', __DIR__.'/../Fixtures')
+            ->import('App\FixturesForTaggedAs\\', __DIR__.'/FixturesForTaggedAs')
             ->build();
     }
 
@@ -75,6 +79,26 @@ final class DiContainerFindTaggedDefinitions
         if (false === $found) {
             throw new DomainException(
                 sprintf('Tag "%s" not found.', $tag)
+            );
+        }
+    }
+
+    #[Benchmark('Get service App\\FixturesForTaggedAs\\TaggedAsInterface')]
+    public function getServiceWithTaggedParameterAsInterface(): void
+    {
+        if (!is_object($this->container->get(TaggedAsInterface::class))) {
+            throw new DomainException(
+                sprintf('Invalid service "%s".', TaggedAsInterface::class)
+            );
+        }
+    }
+
+    #[Benchmark('Get App\\FixturesForTaggedAs\\TaggedAsTagName::class')]
+    public function getServiceWithTaggedParameterAsTagName(): void
+    {
+        if (!is_object($this->container->get(TaggedAsTagName::class))) {
+            throw new DomainException(
+                sprintf('Invalid service "%s".', TaggedAsTagName::class)
             );
         }
     }
