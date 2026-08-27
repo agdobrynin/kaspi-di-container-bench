@@ -7,10 +7,12 @@ namespace App\FixturesForTaggedAs;
 use Fixtures\Services\Interfaces\ServiceInterface;
 use Kaspi\DiContainer\Attributes\TaggedAs;
 
-final class TaggedAsInterface
+final class ParamsTaggedAs
 {
     public function __construct(
+        #[TaggedAs('tags.name_bar')]
+        public readonly iterable $taggedName,
         #[TaggedAs(ServiceInterface::class)]
-        public readonly iterable $taggedServices,
+        public readonly iterable $taggedInterface,
     ) {}
 }

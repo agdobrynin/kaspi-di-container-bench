@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App;
 
-use App\FixturesForTaggedAs\TaggedAsInterface;
-use App\FixturesForTaggedAs\TaggedAsTagName;
+use App\FixturesForTaggedAs\ParamsTaggedAs;
 use DomainException;
 use Fixtures\Services\Interfaces\ServiceInterface;
 use Generator;
@@ -83,22 +82,12 @@ final class DiContainerFindTaggedDefinitions
         }
     }
 
-    #[Benchmark('Get service App\\FixturesForTaggedAs\\TaggedAsInterface')]
-    public function getServiceWithTaggedParameterAsInterface(): void
-    {
-        if (!is_object($this->container->get(TaggedAsInterface::class))) {
-            throw new DomainException(
-                sprintf('Invalid service "%s".', TaggedAsInterface::class)
-            );
-        }
-    }
-
-    #[Benchmark('Get App\\FixturesForTaggedAs\\TaggedAsTagName::class')]
+    #[Benchmark('Get service with tagged parameters')]
     public function getServiceWithTaggedParameterAsTagName(): void
     {
-        if (!is_object($this->container->get(TaggedAsTagName::class))) {
+        if (!is_object($this->container->get(ParamsTaggedAs::class))) {
             throw new DomainException(
-                sprintf('Invalid service "%s".', TaggedAsTagName::class)
+                sprintf('Invalid service "%s".', ParamsTaggedAs::class)
             );
         }
     }

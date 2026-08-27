@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App;
 
-use App\FixturesForTaggedAs\TaggedAsInterface;
-use App\FixturesForTaggedAs\TaggedAsTagName;
+use App\FixturesForGet\ParamsRandomServices;
+use App\FixturesForTaggedAs\ParamsTaggedAs;
 use DomainException;
+use Fixtures\Services\Service300;
 use Generator;
 use Kaspi\Benchmark\Attributes\Benchmark;
 use Kaspi\Benchmark\Attributes\Group;
@@ -16,106 +17,45 @@ use Kaspi\Benchmark\Attributes\Parameters;
 use Kaspi\DiContainer\DiContainer;
 use Kaspi\DiContainer\DiContainerBuilder;
 use Kaspi\DiContainer\DiContainerConfig;
-use Psr\Container\NotFoundExceptionInterface;
 use function is_object;
+use function Kaspi\DiContainer\diAutowire;
 use function sprintf;
 
-#[Group('Get services')]
+#[Group('Get')]
 #[Iterations(100)]
 #[NumberOfTimes(2)]
 final class DiContainerGet
 {
-    #[Benchmark]
-    #[Parameters([self::class, 'ContainerZeroOnRandomIds'])]
-    public function resolveServiceWithZeroConfigTrue(DiContainer $container, iterable $ids, iterable $noneExistIds): void
+    #[Benchmark('Resolve service')]
+    #[Parameters([self::class, 'runtimeContainer'])]
+    public function resolveServicesAtConstructor(DiContainer $runtimeContainer): void
     {
-        foreach ($ids as $id) {
-            if (!is_object($container->get($id))) {
-                throw new DomainException(
-                    sprintf('Service "%s" not found.', $id)
-                );
-            }
-        }
-
-        foreach ($noneExistIds as $id) {
-            try {
-                $container->get($id);
-            } catch (NotFoundExceptionInterface) {}
+        if (!is_object($runtimeContainer->get(ParamsRandomServices::class))) {
+            throw new DomainException(
+                'Invalid initial service '.ParamsRandomServices::class
+            );
         }
     }
 
-    public static function ContainerZeroOnRandomIds(): Generator
+    public static function runtimeContainer(): Generator
     {
-        $config = new DiContainerConfig(useZeroConfigurationDefinition: true);
-        $container = (new DiContainerBuilder($config))
-            ->addDefinitions(Fixtures::configuredDefinitions())
-            ->build();
-
-        yield 'random 10 services' => [
-            $container,
-            [...Fixtures::randomExistIds(), ...array_keys([...Fixtures::configuredDefinitions()])],
-            Fixtures::randomNoneExistIds(),
+        yield 'zero config and one alias' => [
+            (new DiContainerBuilder(
+                new DiContainerConfig(
+                    useZeroConfigurationDefinition: true,
+                    useAttribute: true,
+                )
+            ))
+                ->addDefinitions([
+                    'alias_of_service_300' => diAutowire(Service300::class),
+                ])
+                ->build()
         ];
     }
 
-    #[Benchmark]
-    #[Parameters([self::class, 'ContainerZeroOffRandomIds'])]
-    public function resolveServiceWithImportAllZeroConfigFalse(DiContainer $container, iterable $ids, iterable $noneExistIds): void
-    {
-        foreach ($ids as $id) {
-            if (!is_object($container->get($id))) {
-                throw new DomainException(
-                    sprintf('Service "%s" not found.', $id)
-                );
-            }
-        }
-
-
-        foreach ($noneExistIds as $id) {
-            try {
-                $container->get($id);
-            } catch (NotFoundExceptionInterface) {}
-        }
-    }
-
-    public static function ContainerZeroOffRandomIds(): Generator
-    {
-        $config = new DiContainerConfig(useZeroConfigurationDefinition: false);
-
-        $container = (new DiContainerBuilder($config))
-            ->import('Fixtures\\', __DIR__.'/../Fixtures')
-            ->addDefinitions(Fixtures::configuredDefinitions())
-            ->build();
-
-        yield 'random 10 services' => [
-            $container,
-            [...Fixtures::randomExistIds(), ...array_keys([...Fixtures::configuredDefinitions()])],
-            Fixtures::randomNoneExistIds(),
-        ];
-    }
-
-    #[Benchmark]
-    #[Parameters([self::class, 'compiledContainerRandomIds'])]
-    public function resolveServiceOnCompiledContainer(DiContainer $container, iterable $ids, iterable $noneExistIds): void
-    {
-        foreach ($ids as $id) {
-            if (!is_object($container->get($id))) {
-                throw new DomainException(
-                    sprintf('Service "%s" not found.', $id)
-                );
-            }
-        }
-
-
-        foreach ($noneExistIds as $id) {
-            try {
-                $container->get($id);
-            } catch (NotFoundExceptionInterface) {}
-        }
-    }
-
-    #[Benchmark('Get service with tagged argument')]
-    #[Parameters([self::class, 'compiledContainerWithTaggedDefinitions'])]
+    #[Benchmark('Tagged arguments as lazy loading.')]
+    #[Parameters([self::class, 'forTaggedParams'])]
+    #[NumberOfTimes(20)]
     public function getServiceWithTaggedParameterAsTagName(DiContainer $container, string $id): void
     {
         if (!is_object($container->get($id))) {
@@ -125,27 +65,7 @@ final class DiContainerGet
         }
     }
 
-    public static function compiledContainerRandomIds(): Generator
-    {
-        $container = (new DiContainerBuilder(
-            new DiContainerConfig(
-                useZeroConfigurationDefinition: false,
-            )
-        ))
-            ->compileToFile(__DIR__.'/../var', 'ContainerGet', options: ['force_rebuild' => true])
-            ->addDefinitions(Fixtures::configuredDefinitions())
-            ->import('Fixtures\\', __DIR__.'/../Fixtures')
-            ->build()
-        ;
-
-        yield 'random 10 services' => [
-            $container,
-            [...Fixtures::randomExistIds(), ...array_keys([...Fixtures::configuredDefinitions()])],
-            Fixtures::randomNoneExistIds(),
-        ];
-    }
-
-    public static function compiledContainerWithTaggedDefinitions(): Generator
+    public static function forTaggedParams(): Generator
     {
         $container = (new DiContainerBuilder(
             new DiContainerConfig(
@@ -153,19 +73,33 @@ final class DiContainerGet
             )
         ))
             ->compileToFile(__DIR__.'/../var', 'ContainerGetTaggedArg', options: ['force_rebuild' => true])
+            ->import(
+                'App\\',
+                __DIR__.'/FixturesForTaggedAs',
+                excludeFiles: ['ParamsRandomServices.php'],
+            )
+            ->import('Fixtures\\', __DIR__.'/../Fixtures')
+            ->build()
+        ;
+
+        yield 'compiled container' => [
+            $container,
+            ParamsTaggedAs::class,
+        ];
+
+        $container = (new DiContainerBuilder(
+            new DiContainerConfig(
+                useZeroConfigurationDefinition: false,
+            )
+        ))
             ->import('App\\', __DIR__.'/FixturesForTaggedAs')
             ->import('Fixtures\\', __DIR__.'/../Fixtures')
             ->build()
         ;
 
-        yield [
+        yield 'runtime container' => [
             $container,
-            TaggedAsInterface::class,
-        ];
-
-        yield [
-            $container,
-            TaggedAsTagName::class,
+            ParamsTaggedAs::class,
         ];
     }
 }
