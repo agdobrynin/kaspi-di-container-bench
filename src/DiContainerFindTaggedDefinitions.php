@@ -10,6 +10,7 @@ use Generator;
 use Kaspi\Benchmark\Attributes\AfterMethod;
 use Kaspi\Benchmark\Attributes\BeforeMethod;
 use Kaspi\Benchmark\Attributes\Benchmark;
+use Kaspi\Benchmark\Attributes\Group;
 use Kaspi\Benchmark\Attributes\Iterations;
 use Kaspi\Benchmark\Attributes\NumberOfTimes;
 use Kaspi\Benchmark\Attributes\Parameters;
@@ -17,6 +18,7 @@ use Kaspi\DiContainer\DiContainerBuilder;
 use Kaspi\DiContainer\Interfaces\DiContainerInterface;
 use function sprintf;
 
+#[Group('Find tagged definitions')]
 #[Iterations(100)]
 #[NumberOfTimes(2)]
 #[BeforeMethod('buildContainer')]

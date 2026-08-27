@@ -4,18 +4,17 @@ declare(strict_types=1);
 namespace ContainerV46;
 
 use Kaspi\Benchmark\BenchmarkResultsFile;
-use Kaspi\Benchmark\BenchmarkRunner;
 use Kaspi\Benchmark\Config\Configuration;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
 $benchResultsFile = new BenchmarkResultsFile(Configuration::JsonFileResult->getValue());
 
-/** @var callable(string $ver): list<BenchmarkRunner> $benches */
-$benches = require __DIR__.'/../../src/index.php';
+$runner = require __DIR__.'/../../src/benchmark_runner.php';
 
-foreach ($benches() as $bench) {
-    $benchResultsFile->attach($bench->doBenchmarks());
+foreach ($runner->doBenchmarks() as $result) {
+    $benchResultsFile->attach($result);
 }
 
 $benchResultsFile->save();
+

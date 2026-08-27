@@ -11,6 +11,6 @@
         ]
     },
     "require": {
-        "kaspi/benchmark": "^0.1"
+        "kaspi/benchmark": "1.0.*"
     }
 }

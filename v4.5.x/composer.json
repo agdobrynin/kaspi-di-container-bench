@@ -1,7 +1,7 @@
 {
     "require": {
         "kaspi/di-container": "4.5.*",
-        "kaspi/benchmark": "^0.1"
+        "kaspi/benchmark": "1.0.*"
     },
     "autoload": {
         "psr-4": {
