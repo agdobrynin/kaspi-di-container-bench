@@ -15,6 +15,8 @@ enum Configuration
     case ServicesSrc;
     case ServicesNamespace;
     case ServicesNamePrefix;
+    case TagName;
+    case DiClassesConfigFile;
 
     public function getValue(): mixed
     {
@@ -29,6 +31,8 @@ enum Configuration
             self::ServicesSrc => __DIR__ . '/Fixtures/Services',
             self::ServicesNamespace => 'Fixtures\\Services',
             self::ServicesNamePrefix => 'Service',
+
+            self::DiClassesConfigFile => __DIR__ . '/Fixtures/di_classes.php',
         };
     }
 }

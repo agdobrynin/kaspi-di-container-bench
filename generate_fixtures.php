@@ -39,6 +39,9 @@ if ($countOfService === count(glob(Configuration::ServicesSrc->getValue().'/*.ph
     exit(0);
 }
 
+$tagName = var_export('tags.name_bar', true);
+$diClassesFQCN = [];
+
 do {
     $serviceShortName = Configuration::ServicesNamePrefix->getValue().$countOfService;
 
@@ -49,13 +52,14 @@ do {
         $autowireAttribute = <<< AUTOWIRE
 use Kaspi\DiContainer\Attributes\{Autowire, Tag};
 
-#[Autowire(tags: new Tag('tags.name_bar'))]
+#[Autowire(tags: new Tag($tagName))]
 AUTOWIRE;
     } else {
         $implementInterface = sprintf('implements \\%s\\%s', Configuration::InterfacesNamespace->getValue(), Configuration::InterfaceName->getValue());
     }
 
     $servicesNamespace = Configuration::ServicesNamespace->getValue();
+    $diClassesFQCN[] = sprintf('%s\\%s', $servicesNamespace, $serviceShortName);
 
     $template = <<< TMPL
 <?php
@@ -80,5 +84,23 @@ TMPL;
 
     $countOfService--;
 } while ($countOfService > 0);
+
+// generate di classes config
+$classesAutowire = '';
+foreach ($diClassesFQCN as $classFQCN) {
+    $classesAutowire.=sprintf("    yield diAutowire(%s::class);\n", $classFQCN);
+}
+
+$diClassesConfigContent = <<< CONTENT
+<?php
+declare(strict_types=1);
+use function \Kaspi\DiContainer\diAutowire;
+
+return static function ():\Generator {
+$classesAutowire    
+};
+CONTENT;
+
+file_put_contents(Configuration::DiClassesConfigFile->getValue(), $diClassesConfigContent);
 
 print "\033[1;32m📁 The fixtures for services were successfully generated.\033[0m\n";

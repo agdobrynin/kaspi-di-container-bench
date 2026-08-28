@@ -5,3 +5,4 @@
 **/composer.lock
 var/
 Fixtures/Services
+Fixtures/*.php
